@@ -1,7 +1,7 @@
 # Vprojecte_Backend
 Стэк: 
-      Spring framework, 
-      Java, 
+      Spring boot(data, web, security, test), 
+      Java 17, 
       Hibernate, 
       MySql
 
