@@ -3,6 +3,8 @@ package com.friend.your.vprojecte;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.time.LocalDate;
+
 @SpringBootApplication
 public class VprojecteApplication {
 
@@ -10,4 +12,5 @@ public class VprojecteApplication {
 		SpringApplication.run(VprojecteApplication.class, args);
 	}
 
+	// TODO: configure response bodies before frontend
 }
