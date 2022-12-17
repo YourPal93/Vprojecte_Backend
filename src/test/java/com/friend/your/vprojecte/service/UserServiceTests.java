@@ -2,6 +2,7 @@ package com.friend.your.vprojecte.service;
 
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.service.impl.UserServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -82,6 +85,23 @@ public class UserServiceTests {
     @Test
     public void UserService_Delete_ReturnVoid() {
         assertAll(() -> userService.delete(1));
+    }
+
+    @Test
+    public void UserService_getChatLogs_ReturnPageOfChats() {
+        AppUser mockUser = new AppUser(
+                "AppUser",
+                "1234",
+                "Test",
+                "something@proba.test",
+                LocalDate.of(1111, 11, 11));
+        List<Chat> mockChatLog = new ArrayList<>();
+        mockUser.setChatLog(mockChatLog);
+
+        Page<Chat> pageOfChats = userService.getChatLogs(1, 10, mockUser);
+
+        Assertions.assertThat(pageOfChats).isNotNull();
+        Assertions.assertThat(pageOfChats.getContent()).isEqualTo(mockChatLog);
     }
 
 }

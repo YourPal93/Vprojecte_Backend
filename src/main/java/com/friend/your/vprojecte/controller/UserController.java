@@ -2,6 +2,7 @@ package com.friend.your.vprojecte.controller;
 
 
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -86,5 +87,17 @@ public class UserController {
 
         friendService.deleteFriend(user, id);
         return new ResponseEntity<>("Friend has been deleted", HttpStatus.OK);
+    }
+
+    @GetMapping("/communication")
+    public ResponseEntity<Page<Chat>> chatLogs(
+            HttpServletRequest request,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
+    ) {
+        String login = request.getUserPrincipal().getName();
+        AppUser user = userService.findByLogin(login);
+
+        return new ResponseEntity<>(userService.getChatLogs(pageNo, pageSize, user), HttpStatus.OK);
     }
 }

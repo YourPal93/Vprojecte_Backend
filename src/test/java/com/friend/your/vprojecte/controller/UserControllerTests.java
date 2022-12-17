@@ -2,6 +2,7 @@ package com.friend.your.vprojecte.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
 import org.hamcrest.CoreMatchers;
@@ -191,5 +192,24 @@ public class UserControllerTests {
                 .with(mockPostProcessor));
 
         response.andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    public void UserController_ChatLogs_ReturnPageOfChats() throws Exception{
+        Chat mockChat = new Chat("1,2");
+        Page<Chat> mockChatLogs = new PageImpl<>(Arrays.asList(mockChat), PageRequest.of(0, 10), 1);
+
+        when(userService.findByLogin("Test")).thenReturn(mockUser);
+        when(userService.getChatLogs(1, 10, mockUser)).thenReturn(mockChatLogs);
+
+        ResultActions response = mockMvc.perform(get("/user/communication")
+                .with(mockPostProcessor)
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("pageNo", "1")
+                .param("pageSize", "10"));
+
+        response.andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements",
+                        CoreMatchers.is((int) mockChatLogs.getTotalElements())));
     }
 }

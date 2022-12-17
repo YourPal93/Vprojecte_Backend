@@ -3,20 +3,21 @@ package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.entity.Role;
 import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -78,6 +79,16 @@ public class UserServiceImpl implements UserService {
         log.info("Deleting user with id: {}", id);
 
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<Chat> getChatLogs(int pageNo, int pageSize, AppUser user) {
+        log.info("Requesting chat logs of user {}", user.getLogin());
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Chat> pageOfChatLogs = new PageImpl<>(user.getChatLog(), pageable, user.getChatLog().size());
+
+        return pageOfChatLogs;
     }
 
 

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 
@@ -58,6 +59,14 @@ public class AppUser {
     )
     @JoinColumn(name = "user_id")
     private Set<Friend> friendList;
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JoinColumn(name = "user_id")
+    private List<Chat> chatLog;
 
     public AppUser(
             String name,

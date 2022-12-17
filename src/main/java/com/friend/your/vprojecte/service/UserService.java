@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.service;
 
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.Chat;
 import org.springframework.data.domain.Page;
 
 public interface UserService {
@@ -16,4 +17,6 @@ public interface UserService {
     public AppUser save(AppUser user);
 
     public void delete(int id);
+
+    public Page<Chat> getChatLogs(int pageNo, int pageSize, AppUser user);
 }

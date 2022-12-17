@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .antMatchers("/api/**").permitAll()
                 .antMatchers("/user/**").hasRole("USER")
                 .antMatchers("/feed/**").hasRole("USER")
+                .antMatchers("/communication/**").hasRole("USER")
                 .anyRequest()
                 .authenticated()
                 .and()
