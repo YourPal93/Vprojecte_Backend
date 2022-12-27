@@ -1,22 +1,25 @@
 package com.friend.your.vprojecte.service;
 
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
 import org.springframework.data.domain.Page;
 
 public interface UserService {
 
     // измени меня
-    public Page<AppUser> findAll(int pageNo, int pageSize);
+    Page<AppUser> findAll(int pageNo, int pageSize);
 
-    public AppUser findById(int id);
+    AppUser findById(int id);
 
-    public AppUser findByLogin(String login);
+    AppUser findByLogin(String login);
+
+    Page<AppUserPlate> findByLoginMatch(int pageNo, int pageSize, String login);
     Boolean exist(String login);
 
-    public AppUser save(AppUser user);
+    AppUser save(AppUser user);
 
-    public void delete(int id);
+    void delete(int id);
 
-    public Page<Chat> getChatLogs(int pageNo, int pageSize, AppUser user);
+    Page<Chat> getChatLogs(int pageNo, int pageSize, AppUser user);
 }

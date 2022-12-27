@@ -1,8 +1,10 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.FriendRepository;
+import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Friend;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
@@ -27,6 +29,8 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
 
+    private final UserPlateJPARepository userPlateRepository;
+
     @Override
     public Page<AppUser> findAllFriends(int pageNo, int pageSize, AppUser user) {
         log.info("Request friend list for user {}", user.getLogin());
@@ -49,8 +53,17 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    public Page<AppUserPlate> findFriendsMatch(int pageNo, int pageSize, String login) {
+        log.info("Requesting matching user plates for login {} page no {} page size {}", login, pageNo, pageSize);
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        return userPlateRepository.findByLoginContaining(login, pageable);
+    }
+
+    @Override
     public AppUser addFriend(AppUser user, int idOfUserToAdd) {
-        // TODO: FriendService: addFriend - add support for accept frined request/leave in followers
+        // TODO:FriendService: addFriend - add support for accept frined request/leave in followers
         log.info("Adding friend {} to user {}", idOfUserToAdd, user.getLogin());
 
         Friend friendToAdd = new Friend(idOfUserToAdd, true);

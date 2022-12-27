@@ -26,16 +26,34 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.save(role);
     }
     @Override
-    public void deleteRole(AppUser user, Role role) {
-        log.info("Deleting role {} from user {}", role.getName(), user.getLogin());
+    public void deleteRole(Role role) {
+        log.info("Deleting role {} from user {}", role.getName(), role.getUserId());
 
-        user.getRoles().remove(role);
+        roleRepository.deleteByNameAndUserId(role.getName(), role.getUserId());
+    }
+
+    @Override
+    public void deleteRoleAll(String roleName) {
+        log.info("Deleting roles {}", roleName);
+
+        roleRepository.deleteByName(roleName);
     }
     @Override
-    public AppUser addRoleToUser(AppUser user, String roleName) {
-        log.info("Adding role '{}' to user '{}'", roleName, user.getLogin());
+    public AppUser addRoleToUser(AppUser user, Role role) {
+        log.info("Adding role '{}' to user '{}'", role.getName(), user.getLogin());
 
-        user.getRoles().add(new Role(roleName));
+        user.getRoles().add(role);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public AppUser addGroupRoleToUser(AppUser user, Role role) {
+        log.info("Adding group  role '{}' to user '{}'", role.getName(), user.getLogin());
+
+        role.setType(1);
+        user.getGroupRoles().add(role);
+
         return userRepository.save(user);
     }
 }

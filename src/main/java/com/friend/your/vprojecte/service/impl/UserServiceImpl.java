@@ -1,10 +1,14 @@
 package com.friend.your.vprojecte.service.impl;
 
 
+import com.friend.your.vprojecte.dao.RoleRepository;
+import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.entity.Role;
+import com.friend.your.vprojecte.service.RoleService;
 import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,6 +29,8 @@ import java.util.Collection;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserPlateJPARepository userPlateRepository;
+    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -56,6 +61,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<AppUserPlate> findByLoginMatch(int pageNo, int pageSize, String login) {
+        log.info("Request user plate matches with login {} page no {} page size {}", login, pageNo, pageSize);
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        return userPlateRepository.findByLoginContaining(login, pageable);
+    }
+
+    @Override
     public Boolean exist(String login) {
         return userRepository.existsByLogin(login);
     }
@@ -65,20 +79,26 @@ public class UserServiceImpl implements UserService {
         log.info("Saving user '{}' to the database ", user.getLogin());
 
         if(user.getId() == null) {
-            Collection<Role> roles = new ArrayList<>();
-            roles.add(new Role("ROLE_USER"));
-            user.setRoles(roles);
+            user.setRoles(new HashSet<>());
+            roleService.addRoleToUser(user, new Role("ROLE_USER", user.getId()));
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        return userRepository.save(user);
+        AppUser savedUser = userRepository.save(user);
+        AppUserPlate savedUserPlate = new AppUserPlate(savedUser.getId(), savedUser.getLogin());
+
+        userPlateRepository.save(savedUserPlate);
+
+        return savedUser;
     }
 
     @Override
     public void delete(int id) {
         log.info("Deleting user with id: {}", id);
 
+        AppUser user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.deleteById(id);
+        userPlateRepository.deleteById(user.getId());
     }
 
     @Override

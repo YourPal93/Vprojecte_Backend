@@ -2,6 +2,7 @@ package com.friend.your.vprojecte.controller;
 
 
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
@@ -30,8 +31,6 @@ public class UserController {
         return new ResponseEntity<>(userService.findAll(pageNo, pageSize), HttpStatus.OK);
     }
 
-    // TODO: UserController: refactor /find endpoints to return pages of matched results
-
     @GetMapping("/my_page")
     public ResponseEntity<AppUser> myPage(HttpServletRequest request) {
         String login = request.getUserPrincipal().getName();
@@ -41,6 +40,16 @@ public class UserController {
     @GetMapping("/find/{login}")
     public ResponseEntity<AppUser> findByLogin(@PathVariable String login) {
         return new ResponseEntity<>(userService.findByLogin(login), HttpStatus.OK);
+    }
+
+    @GetMapping("/find/{login}/match")
+    public ResponseEntity<Page<AppUserPlate>> findByLoginMatch(
+            @PathVariable String login,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
+    ) {
+
+        return new ResponseEntity<>(userService.findByLoginMatch(pageNo, pageSize, login), HttpStatus.OK);
     }
 
     @PutMapping("/update")
@@ -69,6 +78,16 @@ public class UserController {
     @GetMapping("/friend/find/{login}")
     public ResponseEntity<AppUser> findFriend(@PathVariable String login) {
         return new ResponseEntity<>(friendService.findFriend(login), HttpStatus.OK);
+    }
+
+    @GetMapping("/friend/find/{login}/match")
+    public ResponseEntity<Page<AppUserPlate>> findFriendsMatch(
+            @PathVariable String login,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
+    ) {
+
+        return new ResponseEntity<>(friendService.findFriendsMatch(pageNo, pageSize, login), HttpStatus.OK);
     }
 
     @PostMapping("/friend/add/{id}")

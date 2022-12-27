@@ -7,7 +7,10 @@ public interface RoleService {
 
     public Role saveRole(Role role);
 
-    public void deleteRole(AppUser user, Role role);
+    public void deleteRole(Role role);
 
-    public AppUser addRoleToUser(AppUser user, String roleName);
+    public void deleteRoleAll(String roleName);
+
+    public AppUser addRoleToUser(AppUser user, Role role);
+    public AppUser addGroupRoleToUser(AppUser user, Role role);
 }

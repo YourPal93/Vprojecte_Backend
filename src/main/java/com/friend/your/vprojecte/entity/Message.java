@@ -14,7 +14,10 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
-    @Column(name = "author")
+    @Column(
+            name = "author",
+            nullable = false
+    )
     private int author;
     @Column(
             name = "message_content",

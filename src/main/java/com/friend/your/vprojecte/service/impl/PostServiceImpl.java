@@ -74,12 +74,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public void share(Post post, AppUser receivingUser) {
 
-        // TODO: PostService: share - add share option after adding messaging
+        // TODO:PostService: share - add share option after adding messaging
     }
 
     @Override
     public Post makePost(Post post) {
-        // TODO: PostService: makePost - add support for sharing media files
+        // TODO:PostService: makePost - add support for sharing media files
 
         return postRepository.save(post);
     }

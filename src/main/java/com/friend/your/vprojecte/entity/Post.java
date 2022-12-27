@@ -1,6 +1,5 @@
 package com.friend.your.vprojecte.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -49,6 +48,9 @@ public class Post {
 
     @Column(name = "date_of_post")
     private LocalDate dateOfPost;
+
+    @Column(name = "post_type")
+    private int type;
 
     public Post(int userId, String description, String url, LocalDate dateOfPost) {
         this.userId = userId;

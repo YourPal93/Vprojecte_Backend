@@ -1,5 +1,6 @@
 package com.friend.your.vprojecte.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -7,36 +8,29 @@ import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
-@Entity(name = "role")
-public class Role {
+@AllArgsConstructor
+@Entity(name = "requests")
+public class AddRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
     @Column(
-            name = "name",
-            nullable = false,
-            unique = true
-    )
-    private String name;
-
-    @Column(
             name = "user_id",
             nullable = false
     )
     private int userId;
+    @Column(
+            name = "receiver_id",
+            nullable = false
+    )
+    private int receiverId;
 
-    @Column(name = "role_type")
+    @Column(name = "request_type")
     private int type;
 
-    public Role(String name, int userId) {
-        this.name = name;
+    public AddRequest(int userId, int receiverId) {
         this.userId = userId;
-    }
-
-    public Role(String name, int userId, int type) {
-        this.name = name;
-        this.userId = userId;
-        this.type = type;
+        this.receiverId = receiverId;
     }
 }
