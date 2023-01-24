@@ -10,13 +10,13 @@ public interface PostService {
 
     public Page<Post> findAll(int pageNo, int pageSize);
 
-    public void like(int idOfPost, int idOfUser);
+    public void like(int idOfPost, String userLogin);
 
-    public void removeLike(int idOfPost, int idOfUser);
+    public void removeLike(int idOfPost, String userLogin);
 
     public Page<Comment> showComments(int pageNo, int pageSize, int idOfPost);
 
-    public void comment(int idOfPost, int idOfUser, String message);
+    public void comment(int idOfPost, Comment comment);
 
     public void share(Post post, AppUser user);
 

@@ -2,10 +2,8 @@ package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.CommentRepository;
 import com.friend.your.vprojecte.dao.PostRepository;
-import com.friend.your.vprojecte.entity.AppUser;
-import com.friend.your.vprojecte.entity.Comment;
-import com.friend.your.vprojecte.entity.Like;
-import com.friend.your.vprojecte.entity.Post;
+import com.friend.your.vprojecte.dao.UserPlateJPARepository;
+import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +23,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final UserPlateJPARepository userPlateRepository;
 
     @Override
     public Page<Post> findAll(int pageNo, int pageSize) {
@@ -36,22 +35,29 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void like(int idOfPost, int idOfUser) {
-        log.info("Adding like from user with id {} to the post {}", idOfUser, idOfPost);
+    public void like(int idOfPost, String userLogin) {
+        log.info("Adding like from user with login {} to the post {}", userLogin, idOfPost);
 
-        Optional<Post> post = postRepository.findById(idOfPost);
-        post.ifPresent(value -> value.getLikes().add(new Like(idOfUser)));
-        postRepository.save(post.get());
+
+        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
+        AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+
+        post.getLikes().add(new Like(userPlate.getUserId()));
+        postRepository.save(post);
     }
 
     @Override
-    public void removeLike(int idOfPost, int idOfUser) {
-        log.info("Removing like of user with id {} from the post {}", idOfUser, idOfPost);
+    public void removeLike(int idOfPost, String userLogin) {
+        log.info("Removing like of user with login {} from the post {}", userLogin, idOfPost);
 
-        Like like = new Like(idOfUser);
-        Optional<Post> post = postRepository.findById(idOfPost);
-        post.ifPresent(value -> value.getLikes().remove(like));
-        postRepository.save(post.get());
+        AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+        Like like = new Like(userPlate.getUserId());
+        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
+
+        post.getLikes().remove(like);
+        postRepository.save(post);
     }
 
     @Override
@@ -64,11 +70,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void comment(int idOfPost, int idOfUser, String message) {
-        log.info("Adding comment from user {} to the post {}", idOfUser, idOfPost);
+    public void comment(int idOfPost, Comment comment) {
+        log.info("Adding comment from user with login {} to the post {}", comment.getUserId(), idOfPost);
 
-        Optional<Post> post = postRepository.findById(idOfPost);
-        post.ifPresent(value -> value.getComments().add(new Comment(message, idOfUser)));
+        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
+
+        post.getComments().add(comment);
     }
 
     @Override

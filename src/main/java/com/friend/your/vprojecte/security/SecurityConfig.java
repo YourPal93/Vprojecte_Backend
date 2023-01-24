@@ -5,13 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import java.util.concurrent.TimeUnit;
@@ -20,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
+    private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -34,33 +38,29 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationProvider authenticationProvider() {
+
+        final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/**").permitAll()
-                .antMatchers("/user/**").permitAll()
-                .antMatchers("/feed/**").permitAll()
-                .antMatchers("/communication/**").permitAll()
-                .antMatchers("/group/**").permitAll()
+                // TODO: change permissions after front end development
+                // .antMatchers("/api/**").permitAll()
+                .antMatchers("/**").permitAll()
                 .anyRequest()
-                .authenticated();
-//                .and()
-//                .formLogin()
-//                .loginPage("/login").permitAll()
-//                    .defaultSuccessUrl("/user/my_page")
-//                .and()
-//                .rememberMe()
-//                    .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(30))
-//                    .key(SecurityKeys.getDefault())
-//                .and()
-//                .logout()
-//                    .logoutUrl("/logout")
-//                    .clearAuthentication(true)
-//                    .invalidateHttpSession(true)
-//                    .deleteCookies("JSESSIONID", "remember-me")
-//                    .logoutSuccessUrl("/login");
+                .authenticated()
+                .and()
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

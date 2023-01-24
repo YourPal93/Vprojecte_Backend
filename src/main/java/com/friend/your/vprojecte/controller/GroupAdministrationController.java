@@ -6,6 +6,7 @@ import com.friend.your.vprojecte.service.GroupAdministrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,8 +19,9 @@ public class GroupAdministrationController {
     private final GroupAdministrationService adminService;
 
     @PostMapping("/")
-    public ResponseEntity<Group> createGroup(HttpServletRequest request, @RequestBody Group group) {
-        String login = request.getUserPrincipal().getName();
+    public ResponseEntity<Group> createGroup(@RequestBody Group group) {
+
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
         return new ResponseEntity<>(adminService.createGroup(login, group), HttpStatus.CREATED);
     }
@@ -54,9 +56,9 @@ public class GroupAdministrationController {
     }
 
     @PostMapping("/{nameOfGroup}/{idOfMember}")
-    public ResponseEntity<String> setAdmin(
-            HttpServletRequest request, @PathVariable String nameOfGroup, @PathVariable int idOfMember) {
-        String adminLogin = request.getUserPrincipal().getName();
+    public ResponseEntity<String> setAdmin(@PathVariable String nameOfGroup, @PathVariable int idOfMember) {
+
+        String adminLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
         adminService.setAdmin(adminLogin, nameOfGroup, idOfMember);
 

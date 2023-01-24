@@ -1,19 +1,16 @@
 package com.friend.your.vprojecte.service.impl;
 
 
-import com.friend.your.vprojecte.dao.RoleRepository;
 import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dao.UserRepository;
-import com.friend.your.vprojecte.entity.AppUser;
-import com.friend.your.vprojecte.entity.AppUserPlate;
-import com.friend.your.vprojecte.entity.Chat;
-import com.friend.your.vprojecte.entity.Role;
+import com.friend.your.vprojecte.dto.AppUserDto;
+import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.RoleService;
 import com.friend.your.vprojecte.service.UserService;
+import com.friend.your.vprojecte.utility.PageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +40,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public AppUserPlate findUserPlate(String login) {
+        log.info("Requesting user plate of user with login {}", login);
+
+        AppUserPlate userPlate = userPlateRepository.findByLogin(login)
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+
+        return userPlate;
+    }
+
+    @Override
     public AppUser findById(int id) {
         log.info("Requesting user with id: {}", id);
 
@@ -52,12 +59,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AppUser findByLogin(String login) {
+    public AppUserDto findByLogin(String login) {
         log.info("Requesting user with login: {}", login);
 
         AppUser user = userRepository.findByLogin(login).orElseThrow(() -> new RuntimeException("User not found"));
+        AppUserDto userDto = new AppUserDto();
 
-        return user;
+        userDto.setName(user.getName());
+        userDto.setLogin(userDto.getLogin());
+        userDto.setEmail(user.getEmail());
+        userDto.setBirthdate(user.getBirthdate());
+        userDto.setPassword("");
+
+        return userDto;
     }
 
     @Override
@@ -75,21 +89,46 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AppUser save(AppUser user) {
-        log.info("Saving user '{}' to the database ", user.getLogin());
+    public AppUser save(AppUserDto userDto) {
+        log.info("Saving user '{}' to the database ", userDto.getLogin());
 
-        if(user.getId() == null) {
-            user.setRoles(new HashSet<>());
-            roleService.addRoleToUser(user, new Role("ROLE_USER", user.getId()));
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
+        AppUser user = new AppUser(
+                userDto.getName(),
+                userDto.getPassword(),
+                userDto.getLogin(),
+                userDto.getEmail(),
+                userDto.getBirthdate());
+
+        user.setRoles(new HashSet<>());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         AppUser savedUser = userRepository.save(user);
         AppUserPlate savedUserPlate = new AppUserPlate(savedUser.getId(), savedUser.getLogin());
 
+        roleService.addRoleToUser(user, new Role("ROLE_USER", savedUser.getId()));
         userPlateRepository.save(savedUserPlate);
 
         return savedUser;
+    }
+
+    @Override
+    public AppUser update(AppUserDto userDto) {
+        log.info("Updating user with login {}", userDto.getLogin());
+
+        AppUser user = userRepository.findByLogin(userDto.getLogin())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(userDto.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            return userRepository.save(user);
+        }
+
+        user.setName(userDto.getName());
+        user.setLogin(userDto.getLogin());
+        user.setEmail(userDto.getEmail());
+        user.setBirthdate(userDto.getBirthdate());
+
+        return userRepository.save(user);
     }
 
     @Override
@@ -102,13 +141,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<Chat> getChatLogs(int pageNo, int pageSize, AppUser user) {
-        log.info("Requesting chat logs of user {}", user.getLogin());
+    public Page<Chat> getChatLogs(int pageNo, int pageSize, String loginOfUser) {
+        log.info("Requesting chat logs of user {}", loginOfUser);
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Chat> pageOfChatLogs = new PageImpl<>(user.getChatLog(), pageable, user.getChatLog().size());
+        AppUser user = userRepository.findByLogin(loginOfUser)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Page<Chat> pageOfChatLogs = PageUtil.pageFromList(pageNo, pageSize, user.getChatLog());
 
         return pageOfChatLogs;
+    }
+
+    @Override
+    public Page<Post> getUserWall(int pageNo, int pageSize, int userId) {
+        log.info("requesting user wall of user with id {} page {} page size {}", userId, pageNo, pageSize);
+
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Page<Post> userWall = PageUtil.pageFromList(pageNo, pageSize, user.getPosts());
+
+        return userWall;
+    }
+
+    @Override
+    public void addPostToUser(Post post, int userId) {
+        log.info("String adding post to user with id {}", userId);
+
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        post.setType(2);
+        user.getPosts().add(post);
     }
 
 

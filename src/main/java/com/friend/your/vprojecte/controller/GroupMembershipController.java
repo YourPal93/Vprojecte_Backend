@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,8 +44,9 @@ public class GroupMembershipController {
     }
 
     @PostMapping("/{idOfGroup}/members")
-    public ResponseEntity<String> joinGroup(HttpServletRequest request, @PathVariable int idOfGroup) {
-        String userLogin = request.getUserPrincipal().getName();
+    public ResponseEntity<String> joinGroup(@PathVariable int idOfGroup) {
+
+        String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
         membershipService.addMember(idOfGroup, userLogin);
 

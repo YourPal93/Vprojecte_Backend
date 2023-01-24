@@ -1,22 +1,25 @@
 package com.friend.your.vprojecte.controller;
 
 
+import com.friend.your.vprojecte.dto.AppUserDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
+import com.friend.your.vprojecte.entity.Post;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -32,13 +35,15 @@ public class UserController {
     }
 
     @GetMapping("/my_page")
-    public ResponseEntity<AppUser> myPage(HttpServletRequest request) {
-        String login = request.getUserPrincipal().getName();
+    public ResponseEntity<AppUserDto> myPage() {
+
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
         return new ResponseEntity<>(userService.findByLogin(login), HttpStatus.OK);
     }
 
     @GetMapping("/find/{login}")
-    public ResponseEntity<AppUser> findByLogin(@PathVariable String login) {
+    public ResponseEntity<AppUserDto> findByLogin(@PathVariable String login) {
         return new ResponseEntity<>(userService.findByLogin(login), HttpStatus.OK);
     }
 
@@ -53,8 +58,9 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<AppUser> updateUser(@RequestBody AppUser user) {
-        return new ResponseEntity<>(userService.save(user), HttpStatus.OK);
+    public ResponseEntity<AppUser> updateUser(@RequestBody AppUserDto user) {
+
+        return new ResponseEntity<>(userService.update(user), HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -66,13 +72,13 @@ public class UserController {
 
     @GetMapping("/friend_list")
     public ResponseEntity<Page<AppUser>> friendList(
-            HttpServletRequest request,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
-        return new ResponseEntity<>(friendService.findAllFriends(pageNo, pageSize, user), HttpStatus.OK);
+
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return new ResponseEntity<>(friendService.findAllFriends(pageNo, pageSize, login), HttpStatus.OK);
     }
 
     @GetMapping("/friend/find/{login}")
@@ -91,32 +97,48 @@ public class UserController {
     }
 
     @PostMapping("/friend/add/{id}")
-    public ResponseEntity<String> addFriend(HttpServletRequest request, @PathVariable int id) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<String> addFriend(@PathVariable int id) {
 
-        friendService.addFriend(user, id);
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        friendService.addFriend(login, id);
         return new ResponseEntity<>("Friend has been added", HttpStatus.CREATED);
     }
 
     @DeleteMapping("/friend/delete/{id}")
-    public ResponseEntity<String> deleteFriend(HttpServletRequest request, @PathVariable int id) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<String> deleteFriend(@PathVariable int id) {
 
-        friendService.deleteFriend(user, id);
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        friendService.deleteFriend(login, id);
         return new ResponseEntity<>("Friend has been deleted", HttpStatus.OK);
     }
 
     @GetMapping("/communication")
     public ResponseEntity<Page<Chat>> chatLogs(
-            HttpServletRequest request,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
 
-        return new ResponseEntity<>(userService.getChatLogs(pageNo, pageSize, user), HttpStatus.OK);
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return new ResponseEntity<>(userService.getChatLogs(pageNo, pageSize, login), HttpStatus.OK);
+    }
+
+    @GetMapping("/{userId}/posts")
+    public ResponseEntity<Page<Post>> getUserWall(
+            @PathVariable int userId,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
+    ) {
+        return new ResponseEntity<>(userService.getUserWall(pageNo, pageSize, userId), HttpStatus.OK);
+    }
+
+    @PostMapping("/{userId}/posts")
+    public ResponseEntity<String> addPostToUser(@PathVariable int userId, @RequestBody Post post) {
+
+        userService.addPostToUser(post, userId);
+
+        return new ResponseEntity<>("Success", HttpStatus.OK);
     }
 }

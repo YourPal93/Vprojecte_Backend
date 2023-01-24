@@ -4,10 +4,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@Entity(name = "comment")
+@Entity(name = "comments")
 public class Comment {
 
     @Id
@@ -28,9 +29,14 @@ public class Comment {
     )
     private int userId;
 
-    public Comment(String message, int userId) {
+    @Column(name = "creation_date")
+    private LocalDateTime creationDate;
+
+
+    public Comment(String message, int userId, LocalDateTime creationDate) {
 
         this.message = message;
         this.userId = userId;
+        this.creationDate = creationDate;
     }
 }

@@ -9,17 +9,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/feed")
+@RequestMapping("/posts")
 public class FeedController {
 
     private final PostService postService;
-    private final UserService userService;
 
     @GetMapping("/")
     public ResponseEntity<Page<Post>> newsFeed(
@@ -31,20 +32,22 @@ public class FeedController {
     }
 
     @PostMapping("/like/{idOfPost}")
-    public ResponseEntity<String> likePost(HttpServletRequest request, @PathVariable int idOfPost) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<String> likePost(@PathVariable int idOfPost) {
 
-        postService.like(idOfPost, user.getId());
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        postService.like(idOfPost, login);
+
         return new ResponseEntity<>("Liked", HttpStatus.CREATED);
     }
 
     @PutMapping("/like/{idOfPost}")
-    public ResponseEntity<String> removeLikeFromPost(HttpServletRequest request, @PathVariable int idOfPost) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<String> removeLikeFromPost(@PathVariable int idOfPost) {
 
-        postService.removeLike(idOfPost, user.getId());
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        postService.removeLike(idOfPost, login);
+
         return new ResponseEntity<>("Like removed", HttpStatus.OK);
     }
 
@@ -58,12 +61,10 @@ public class FeedController {
     }
 
     @PostMapping("/comment/{idOfPost}")
-    public ResponseEntity<String> commentOnPost(
-            HttpServletRequest request, @PathVariable int idOfPost, @RequestBody String message) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<String> commentOnPost(@PathVariable int idOfPost, @RequestBody Comment comment) {
 
-        postService.comment(idOfPost, user.getId(), message);
+        postService.comment(idOfPost, comment);
+
         return new ResponseEntity<>("Commented", HttpStatus.CREATED);
     }
 

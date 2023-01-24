@@ -11,8 +11,7 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
-@Entity
-@Table(name="users")
+@Entity(name = "users")
 public class AppUser {
 
     @Id
@@ -59,13 +58,26 @@ public class AppUser {
     )
     @JoinColumn(name = "user_id")
     private List<Chat> chatLog;
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JoinTable(
+            name = "users_posts",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "post_id")
+    )
+    private List<Post> posts;
+
     @OneToMany(
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @JoinTable(
-            name = "users_role",
+            name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
@@ -76,7 +88,7 @@ public class AppUser {
             orphanRemoval = true
     )
     @JoinTable(
-            name = "users_group_role",
+            name = "users_groups_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )

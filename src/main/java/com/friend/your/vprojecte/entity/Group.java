@@ -35,7 +35,7 @@ public class Group {
             orphanRemoval = true
     )
     @JoinTable(
-            name = "groups_post",
+            name = "groups_posts",
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "post_id")
     )
@@ -45,7 +45,11 @@ public class Group {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JoinColumn(name = "receiver_id")
+    @JoinTable(
+            name = "groups_requests",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "request_id")
+    )
     private Set<AddRequest> joinRequests;
     @Column(name = "closed")
     private boolean closed;

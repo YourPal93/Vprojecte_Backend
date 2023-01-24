@@ -5,7 +5,8 @@ import com.friend.your.vprojecte.dao.MessageRepository;
 import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.entity.Message;
 import com.friend.your.vprojecte.service.MessagingService;
-import com.friend.your.vprojecte.utility.CustomIds;
+import com.friend.your.vprojecte.utility.IdMakerUtil;
+import com.friend.your.vprojecte.utility.PageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,7 @@ public class MessagingServiceImpl implements MessagingService {
     public Chat createChat(int senderId, int receiverId) {
         log.info("Creating new chat between users {} and {}", senderId, receiverId);
 
-        return chatRepository.save(new Chat(CustomIds.twoInts(senderId, receiverId)));
+        return chatRepository.save(new Chat(IdMakerUtil.twoInts(senderId, receiverId)));
     }
 
     @Override
@@ -43,8 +44,7 @@ public class MessagingServiceImpl implements MessagingService {
         log.info("Retrieving message log from chat {}", idOfChat);
 
         Chat chat = chatRepository.findById(idOfChat).orElseThrow(() -> new RuntimeException("Chat log not found"));
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Message> messageLog = new PageImpl<>(chat.getMessageLog(), pageable, chat.getMessageLog().size());
+        Page<Message> messageLog = PageUtil.pageFromList(pageNo, pageSize, chat.getMessageLog());
 
         return messageLog;
     }

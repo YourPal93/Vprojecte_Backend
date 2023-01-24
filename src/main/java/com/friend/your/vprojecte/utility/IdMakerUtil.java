@@ -1,6 +1,6 @@
 package com.friend.your.vprojecte.utility;
 
-public class CustomIds {
+public class IdMakerUtil {
 
     public static String twoInts(int val1, int val2) {
         StringBuilder key = new StringBuilder("");

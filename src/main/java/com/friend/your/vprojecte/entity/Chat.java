@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@Entity(name = "chat")
+@Entity(name = "chats")
 public class Chat {
 
     @Id

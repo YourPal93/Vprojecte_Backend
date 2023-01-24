@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,14 +32,15 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
 
         AppUser groupAdmin = userRepository.findByLogin(loginOfUser)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUserPlate userPlate = userPlateRepository.findByLogin(loginOfUser)
+        AppUserPlate adminUserPlate = userPlateRepository.findByLogin(loginOfUser)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
+        Set<Role> groupRoles = groupAdmin.getGroupRoles();
 
-        groupAdmin.getGroupRoles().add(Groups.getMemberRole(group.getName(), groupAdmin.getId()));
-        groupAdmin.getGroupRoles().add(Groups.getModeratorRole(group.getName(), groupAdmin.getId()));
-        groupAdmin.getGroupRoles().add(Groups.getAdminRole(group.getName(), groupAdmin.getId()));
+        groupRoles.add(Groups.getMemberRole(group.getName(), groupAdmin.getId()));
+        groupRoles.add(Groups.getModeratorRole(group.getName(), groupAdmin.getId()));
+        groupRoles.add(Groups.getAdminRole(group.getName(), groupAdmin.getId()));
         group.setMembers(new HashSet<>());
-        group.getMembers().add(userPlate);
+        group.getMembers().add(adminUserPlate);
 
         userRepository.save(groupAdmin);
         return groupRepository.save(group);

@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.controller;
 
 import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.entity.Message;
 import com.friend.your.vprojecte.service.MessagingService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,11 +24,12 @@ public class MessagingController {
     private final UserService userService;
 
     @PostMapping("/chat/{receiverId}")
-    public ResponseEntity<Chat> createNewChat(HttpServletRequest request, @PathVariable int receiverId) {
-        String login = request.getUserPrincipal().getName();
-        AppUser user = userService.findByLogin(login);
+    public ResponseEntity<Chat> createNewChat(@PathVariable int receiverId) {
 
-        return new ResponseEntity<>(messagingService.createChat(user.getId(), receiverId), HttpStatus.CREATED);
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        int senderId = userService.findUserPlate(login).getUserId();
+
+        return new ResponseEntity<>(messagingService.createChat(senderId, receiverId), HttpStatus.CREATED);
     }
 
     @GetMapping("/{idOfChat}/message_log")

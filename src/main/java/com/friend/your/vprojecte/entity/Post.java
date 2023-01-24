@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@Entity(name = "post")
+@Entity(name = "posts")
 public class Post {
 
     @Id
@@ -35,7 +35,11 @@ public class Post {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JoinColumn(name = "post_id")
+    @JoinTable(
+            name = "posts_likes",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "like_id")
+    )
     private Set<Like> likes;
 
     @OneToMany(
