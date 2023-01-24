@@ -1,5 +1,6 @@
 package com.friend.your.vprojecte.service;
 
+import com.friend.your.vprojecte.dto.CommentDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.Comment;
 import com.friend.your.vprojecte.entity.Post;
@@ -16,7 +17,7 @@ public interface PostService {
 
     public Page<Comment> showComments(int pageNo, int pageSize, int idOfPost);
 
-    public void comment(int idOfPost, Comment comment);
+    public void comment(int idOfPost, CommentDto commentDto);
 
     public void share(Post post, AppUser user);
 

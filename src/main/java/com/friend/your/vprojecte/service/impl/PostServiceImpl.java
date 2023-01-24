@@ -3,6 +3,7 @@ package com.friend.your.vprojecte.service.impl;
 import com.friend.your.vprojecte.dao.CommentRepository;
 import com.friend.your.vprojecte.dao.PostRepository;
 import com.friend.your.vprojecte.dao.UserPlateJPARepository;
+import com.friend.your.vprojecte.dto.CommentDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -70,12 +72,22 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void comment(int idOfPost, Comment comment) {
-        log.info("Adding comment from user with login {} to the post {}", comment.getUserId(), idOfPost);
+    public void comment(int idOfPost, CommentDto commentDto) {
+        log.info("Adding comment from user with login {} to the post {}", commentDto.getUserLogin(), idOfPost);
 
         Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
+        AppUserPlate userPlate = userPlateRepository.findByLogin(commentDto.getUserLogin())
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+        Comment newComment = new Comment(commentDto.getId(), commentDto.getMessage());
 
-        post.getComments().add(comment);
+        newComment.setCreatedBy(userPlate);
+        if(commentDto.getId() == null) {
+            newComment.setCreationDate(LocalDateTime.now());
+        } else {
+            newComment.setCreationDate(commentDto.getCreatedDate());
+        }
+
+        post.getComments().add(newComment);
     }
 
     @Override

@@ -20,23 +20,16 @@ public class Comment {
     )
     private String message;
 
-    @Column(name = "post_id")
-    private int postId;
-
-    @Column(
-            name = "user_id",
-            nullable = false
-    )
-    private int userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private AppUserPlate createdBy;
 
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
 
-    public Comment(String message, int userId, LocalDateTime creationDate) {
-
+    public Comment(int id, String message) {
+        this.id = id;
         this.message = message;
-        this.userId = userId;
-        this.creationDate = creationDate;
     }
 }

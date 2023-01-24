@@ -1,5 +1,6 @@
 package com.friend.your.vprojecte.controller;
 
+import com.friend.your.vprojecte.dto.CommentDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.Comment;
 import com.friend.your.vprojecte.entity.Post;
@@ -52,7 +53,7 @@ public class FeedController {
     }
 
     @GetMapping("/comment/{idOfPost}")
-    public ResponseEntity<Page<Comment>> showComments(
+    public ResponseEntity<Page<Comment>> getComments(
             @PathVariable int idOfPost,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
@@ -61,9 +62,9 @@ public class FeedController {
     }
 
     @PostMapping("/comment/{idOfPost}")
-    public ResponseEntity<String> commentOnPost(@PathVariable int idOfPost, @RequestBody Comment comment) {
+    public ResponseEntity<String> commentOnPost(@PathVariable int idOfPost, @RequestBody CommentDto commentDto) {
 
-        postService.comment(idOfPost, comment);
+        postService.comment(idOfPost, commentDto);
 
         return new ResponseEntity<>("Commented", HttpStatus.CREATED);
     }
