@@ -2,6 +2,7 @@ package com.friend.your.vprojecte.controller;
 
 
 import com.friend.your.vprojecte.dto.AppUserDto;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
@@ -126,7 +127,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/posts")
-    public ResponseEntity<Page<Post>> getUserWall(
+    public ResponseEntity<Page<PostDto>> getUserWall(
             @PathVariable int userId,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize

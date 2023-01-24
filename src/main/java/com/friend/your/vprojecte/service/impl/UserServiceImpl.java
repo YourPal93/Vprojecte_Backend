@@ -4,6 +4,7 @@ package com.friend.your.vprojecte.service.impl;
 import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.dto.AppUserDto;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.RoleService;
 import com.friend.your.vprojecte.service.UserService;
@@ -17,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -152,12 +155,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<Post> getUserWall(int pageNo, int pageSize, int userId) {
+    public Page<PostDto> getUserWall(int pageNo, int pageSize, int userId) {
         log.info("requesting user wall of user with id {} page {} page size {}", userId, pageNo, pageSize);
 
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Page<Post> userWall = PageUtil.pageFromList(pageNo, pageSize, user.getPosts());
+        List<Post> posts = user.getPosts();
+        List<PostDto> userWallDtos = new ArrayList<>();
+
+        int start = pageNo * pageSize;
+        int end = start + pageSize;
+        if(end > posts.size()) {
+            end = posts.size();
+        }
+
+        for(Post post : posts.subList(start, end)) {
+            PostDto postDto = new PostDto();
+            postDto.setId(post.getId());
+            postDto.setUserId(postDto.getUserId());
+            postDto.setDescription(post.getDescription());
+            postDto.setUrl(post.getUrl());
+            postDto.setDateOfPost(post.getDateOfPost());
+            userWallDtos.add(postDto);
+        }
+
+        Page<PostDto> userWall = PageUtil.listToPage(pageNo, pageSize, userWallDtos, posts.size());
 
         return userWall;
     }

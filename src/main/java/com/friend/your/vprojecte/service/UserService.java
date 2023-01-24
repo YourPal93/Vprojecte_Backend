@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.service;
 
 import com.friend.your.vprojecte.dto.AppUserDto;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
@@ -29,7 +30,7 @@ public interface UserService {
 
     Page<Chat> getChatLogs(int pageNo, int pageSize, String loginOfUser);
 
-    Page<Post> getUserWall(int pageNo, int pageSize, int userId);
+    Page<PostDto> getUserWall(int pageNo, int pageSize, int userId);
 
     void addPostToUser(Post post, int userId);
 }

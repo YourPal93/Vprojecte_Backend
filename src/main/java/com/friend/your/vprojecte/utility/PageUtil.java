@@ -22,4 +22,11 @@ public class PageUtil<E extends Object> {
 
         return page;
     }
+
+    public static <T> Page<T> listToPage(int pageNo, int pageSize, List<T> items, int totalElements) {
+
+        Page<T> page = new PageImpl<>(items, PageRequest.of(pageNo, pageSize), totalElements);
+
+        return page;
+    }
 }
