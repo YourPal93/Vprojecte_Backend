@@ -116,17 +116,6 @@ public class UserController {
         return new ResponseEntity<>("Friend has been deleted", HttpStatus.OK);
     }
 
-    @GetMapping("/communication")
-    public ResponseEntity<Page<Chat>> chatLogs(
-            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
-    ) {
-
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        return new ResponseEntity<>(userService.getChatLogs(pageNo, pageSize, login), HttpStatus.OK);
-    }
-
     @GetMapping("/{userId}/posts")
     public ResponseEntity<Page<PostDto>> getUserWall(
             @PathVariable Integer userId,
