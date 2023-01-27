@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.*;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.GroupMembershipService;
 import com.friend.your.vprojecte.service.RoleService;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
@@ -24,6 +27,7 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
     private final UserRepository userRepository;
     private final AddRequestJPARepository requestRepository;
     private final RoleService roleService;
+    private final PostRepository postRepository;
 
 
     @Override
@@ -36,7 +40,7 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
     }
 
     @Override
-    public Group findGroup(int idOfGroup) {
+    public Group findGroup(Integer idOfGroup) {
         log.info("Requesting group with id {}", idOfGroup);
 
         Group group = groupRepository.findById(idOfGroup).orElseThrow(() -> new RuntimeException("Group not found"));
@@ -55,21 +59,23 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
     }
 
     @Override
-    public void addMember(int idOfGroup, String loginOfUser) {
+    public AppUserPlate addMember(Integer idOfGroup, String loginOfUser) {
         log.info("Adding user user with login {} as member to the group with id {}", loginOfUser, idOfGroup);
 
         Group group = groupRepository.findById(idOfGroup)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         AppUser user = userRepository.findByLogin(loginOfUser)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUserPlate userPlate = userPlateRepository.findByLogin(loginOfUser)
+        AppUserPlate userPlateToAdd = userPlateRepository.findByLogin(loginOfUser)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Role newMemberRole = Groups.getMemberRole(group.getName(), userPlate.getUserId());
+        Role newMemberRole = Groups.getMemberRole(group.getName(), userPlateToAdd.getUserId());
 
-        group.getMembers().add(userPlate);
+        group.getMembers().add(userPlateToAdd);
 
         roleService.addGroupRoleToUser(user,newMemberRole);
         groupRepository.save(group);
+
+        return userPlateToAdd;
     }
 
     @Override
@@ -78,20 +84,36 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
     }
 
     @Override
-    public void sendMembershipRequest(AddRequest request) {
+    public AddRequest sendMembershipRequest(AddRequest request) {
         log.info("Sending membership request with id {}", request.getId());
 
-        requestRepository.save(request);
+        return requestRepository.save(request);
     }
 
     @Override
-    public void makePost(int idOfGroup, Post post) {
+    public PostDto makePost(Integer idOfGroup, Post post) {
         log.info("Creating group post with id {} for the group with id {}", post.getId(), idOfGroup);
 
         Group group = groupRepository.findById(idOfGroup)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
+        PostDto postDto = new PostDto();
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
 
         post.setType(1);
+        post.setCreationDate(currentDateTime);
+
+        Post savedPost = postRepository.save(post);
+
         group.getPosts().add(post);
+        groupRepository.save(group);
+
+        postDto.setId(savedPost.getId());
+        postDto.setUserLogin(savedPost.getUserLogin());
+        postDto.setDescription(savedPost.getDescription());
+        postDto.setUrl(savedPost.getUrl());
+        postDto.setCreationDate(savedPost.getCreationDate());
+
+        return postDto;
     }
 }

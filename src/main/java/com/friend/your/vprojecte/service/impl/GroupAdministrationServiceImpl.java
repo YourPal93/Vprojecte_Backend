@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.*;
+import com.friend.your.vprojecte.dto.GroupDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.GroupAdministrationService;
 import com.friend.your.vprojecte.service.RoleService;
@@ -47,20 +48,22 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public Group updateGroup(Group group) {
+    public GroupDto updateGroup(GroupDto group) {
         log.info("Updating group with id {}" , group.getId());
 
         Group groupToUpdate = groupRepository.findById(group.getId())
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
         groupToUpdate.setName(group.getName());
-        groupToUpdate.setClosed(group.isClosed());
+        groupToUpdate.setClosed(group.getClosed());
 
-        return groupRepository.save(groupToUpdate);
+        groupRepository.save(groupToUpdate);
+
+        return group;
     }
 
     @Override
-    public void deleteGroup(int idOfGroup) {
+    public void deleteGroup(Integer idOfGroup) {
         log.info("Deleting group with id {}", idOfGroup);
 
         Group groupToDelete = groupRepository.findById(idOfGroup)
@@ -74,7 +77,7 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void setModerator(String nameOfGroup, int idOfMember) {
+    public void setModerator(String nameOfGroup, Integer idOfMember) {
         log.info("Setting user with id {} as moderator for the group with name {}", idOfMember, nameOfGroup);
 
         AppUser member = userRepository.findById(idOfMember)
@@ -84,7 +87,7 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void deleteModerator(String nameOfGroup, int idOfMember) {
+    public void deleteModerator(String nameOfGroup, Integer idOfMember) {
         log.info("Deleting moderator with id {} for the group with name {}", idOfMember, nameOfGroup);
 
         AppUser member = userRepository.findById(idOfMember)
@@ -94,7 +97,7 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void setAdmin(String loginOfUser, String nameOfGroup, int idOfMember) {
+    public void setAdmin(String loginOfUser, String nameOfGroup, Integer idOfMember) {
         log.info("Setting user with login {} as admin for the group with name {}", loginOfUser, nameOfGroup);
 
         AppUser newAdmin = userRepository.findById(idOfMember)
@@ -107,8 +110,8 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void deleteMember(int idOfGroup, int idOfMember) {
-        log.info("Deleting user with id {} from the gorup with id {}", idOfMember, idOfGroup);
+    public void deleteMember(Integer idOfGroup, Integer idOfMember) {
+        log.info("Deleting user with id {} from the group with id {}", idOfMember, idOfGroup);
 
         Group group = groupRepository.findById(idOfGroup)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
@@ -122,7 +125,7 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void approveMembershipRequest(AddRequest request) {
+    public AppUserPlate approveMembershipRequest(AddRequest request) {
         log.info("Approving membership request with id {}", request.getId());
 
         Group group = groupRepository.findById(request.getReceiverId())
@@ -138,6 +141,8 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
         roleService.addGroupRoleToUser(user, newMemberRole);
         groupRepository.save(group);
         requestRepository.deleteById(request.getId());
+
+        return userPlateToAdd;
     }
 
     @Override
@@ -149,7 +154,7 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
 
 
     @Override
-    public void deletePost(int idOfPost) {
+    public void deletePost(Integer idOfPost) {
         log.info("Deleting group post with id {}", idOfPost);
 
         postRepository.deleteById(idOfPost);

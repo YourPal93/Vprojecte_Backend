@@ -4,14 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class PostDto {
 
-    private int id;
-    private int userId;
+    private Integer id;
+    private String userLogin;
     private String description;
     private String url;
-    private LocalDate dateOfPost;
+    private LocalDateTime creationDate;
 }

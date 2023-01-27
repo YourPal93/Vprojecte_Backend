@@ -2,7 +2,6 @@ package com.friend.your.vprojecte.controller;
 
 import com.friend.your.vprojecte.dto.AppUserCredentialsDto;
 import com.friend.your.vprojecte.dto.AppUserDto;
-import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.utility.JwtUtil;
 import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,7 @@ public class ApiController {
 
         userService.save(userDto);
 
-        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>("Registration successful", HttpStatus.CREATED);
     }
 
     @PostMapping("/login")

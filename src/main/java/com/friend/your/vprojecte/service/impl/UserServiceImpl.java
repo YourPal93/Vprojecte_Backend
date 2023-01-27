@@ -3,6 +3,7 @@ package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dao.UserRepository;
+import com.friend.your.vprojecte.dto.AppUserCredentialsDto;
 import com.friend.your.vprojecte.dto.AppUserDto;
 import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,12 +36,12 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<AppUser> findAll(int pageNo, int pageSize) {
-        log.info("Requesting users page {} with size {} from the database", pageNo, pageSize);
+    public Page<AppUserPlate> findAll(int pageNo, int pageSize) {
+        log.info("Requesting user plates page {} with size {} from the database", pageNo, pageSize);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return userRepository.findAll(pageable);
+        return userPlateRepository.findAll(pageable);
     }
 
     @Override
@@ -53,12 +55,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AppUser findById(int id) {
+    public AppUserDto findById(Integer id) {
         log.info("Requesting user with id: {}", id);
 
         AppUser user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-        return user;
+        AppUserDto userDto = new AppUserDto();
+
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setLogin(user.getLogin());
+        userDto.setBirthdate(user.getBirthdate());
+        userDto.setEmail(user.getEmail());
+
+        return userDto;
     }
 
     @Override
@@ -68,11 +78,11 @@ public class UserServiceImpl implements UserService {
         AppUser user = userRepository.findByLogin(login).orElseThrow(() -> new RuntimeException("User not found"));
         AppUserDto userDto = new AppUserDto();
 
+        userDto.setId(user.getId());
         userDto.setName(user.getName());
-        userDto.setLogin(userDto.getLogin());
+        userDto.setLogin(user.getLogin());
         userDto.setEmail(user.getEmail());
         userDto.setBirthdate(user.getBirthdate());
-        userDto.setPassword("");
 
         return userDto;
     }
@@ -92,18 +102,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AppUser save(AppUserDto userDto) {
+    public AppUserDto save(AppUserDto userDto) {
         log.info("Saving user '{}' to the database ", userDto.getLogin());
 
         AppUser user = new AppUser(
                 userDto.getName(),
-                userDto.getPassword(),
+                passwordEncoder.encode(userDto.getPassword()),
                 userDto.getLogin(),
                 userDto.getEmail(),
                 userDto.getBirthdate());
 
         user.setRoles(new HashSet<>());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         AppUser savedUser = userRepository.save(user);
         AppUserPlate savedUserPlate = new AppUserPlate(savedUser.getId(), savedUser.getLogin());
@@ -111,19 +120,23 @@ public class UserServiceImpl implements UserService {
         roleService.addRoleToUser(user, new Role("ROLE_USER", savedUser.getId()));
         userPlateRepository.save(savedUserPlate);
 
-        return savedUser;
+        userDto.setId(savedUser.getId());
+
+        return userDto;
     }
 
     @Override
-    public AppUser update(AppUserDto userDto) {
-        log.info("Updating user with login {}", userDto.getLogin());
+    public AppUserDto update(String userLogin, AppUserDto userDto) {
+        log.info("Updating user with login {}", userLogin);
 
-        AppUser user = userRepository.findByLogin(userDto.getLogin())
+        AppUser user = userRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if(userDto.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            return userRepository.save(user);
+            userRepository.save(user);
+            userDto.setPassword(null);
+            return userDto;
         }
 
         user.setName(userDto.getName());
@@ -131,11 +144,15 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDto.getEmail());
         user.setBirthdate(userDto.getBirthdate());
 
-        return userRepository.save(user);
+        userRepository.save(user);
+
+        userDto.setId(user.getId());
+
+        return userDto;
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(Integer id) {
         log.info("Deleting user with id: {}", id);
 
         AppUser user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
@@ -155,7 +172,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<PostDto> getUserWall(int pageNo, int pageSize, int userId) {
+    public Page<PostDto> getUserWall(int pageNo, int pageSize, Integer userId) {
         log.info("requesting user wall of user with id {} page {} page size {}", userId, pageNo, pageSize);
 
         AppUser user = userRepository.findById(userId)
@@ -170,12 +187,13 @@ public class UserServiceImpl implements UserService {
         }
 
         for(Post post : posts.subList(start, end)) {
+
             PostDto postDto = new PostDto();
             postDto.setId(post.getId());
-            postDto.setUserId(postDto.getUserId());
+            postDto.setUserLogin(postDto.getUserLogin());
             postDto.setDescription(post.getDescription());
             postDto.setUrl(post.getUrl());
-            postDto.setDateOfPost(post.getDateOfPost());
+            postDto.setCreationDate(post.getCreationDate());
             userWallDtos.add(postDto);
         }
 
@@ -185,15 +203,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addPostToUser(Post post, int userId) {
+    public PostDto addPostToUser(Post post, Integer userId) {
         log.info("String adding post to user with id {}", userId);
 
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        LocalDateTime currentDateTime = LocalDateTime.now();
 
         post.setType(2);
+        post.setCreationDate(currentDateTime);
         user.getPosts().add(post);
-    }
 
+        userRepository.save(user);
+
+        PostDto postDto = new PostDto();
+
+        postDto.setId(post.getId());
+        postDto.setUserLogin(post.getUserLogin());
+        postDto.setDescription(post.getDescription());
+        postDto.setUrl(post.getUrl());
+        postDto.setCreationDate(currentDateTime);
+
+        return postDto;
+    }
 
 }

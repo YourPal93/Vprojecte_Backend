@@ -11,5 +11,7 @@ public interface UserPlateJPARepository extends JpaRepository<AppUserPlate, Inte
 
     Optional<AppUserPlate> findByLogin(String login);
 
+    Page<AppUserPlate> findAll(Pageable pageable);
+
     Page<AppUserPlate> findByLoginContaining(String login , Pageable pageable);
 }

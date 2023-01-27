@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -13,17 +14,31 @@ import java.util.List;
 public class Chat {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Integer id;
+
     @OneToMany(
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     @JoinColumn(name = "chat_id")
-    private List<Message> messageLog;
+    private Set<Message> messageLog;
 
-    public Chat(String id) {
-        this.id = id;
-    }
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH,
+                    CascadeType.MERGE
+            }
+    )
+    @JoinTable(
+            name = "user_plates_chats",
+            joinColumns = @JoinColumn(name = "chat_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_plate_id")
+    )
+    private List<AppUserPlate> users;
 }

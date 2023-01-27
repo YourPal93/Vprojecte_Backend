@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface VideoJpaRepository extends JpaRepository<Video, Long> {
+public interface VideoJpaRepository extends JpaRepository<Video, Integer> {
 
     Optional<Video> findByName(String name);
 

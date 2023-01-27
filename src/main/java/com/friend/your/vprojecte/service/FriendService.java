@@ -9,13 +9,13 @@ import java.util.List;
 
 public interface FriendService {
 
-    Page<AppUser> findAllFriends(int pageNo, int pageSize, String login);
+    Page<AppUserPlate> findAllFriends(int pageNo, int pageSize, String login);
 
-    AppUser findFriend(String login);
+    AppUserPlate findFriend(String login);
 
     Page<AppUserPlate> findFriendsMatch(int pageNo, int pageSize, String login);
 
-    AppUser addFriend(String loginOfUser, int idOfUserToAdd);
+    AppUserPlate addFriend(String loginOfUser, Integer idOfUserToAdd);
 
-    void deleteFriend(String loginOfUser, int idOfFriend);
+    void deleteFriend(String loginOfUser, Integer idOfFriend);
 }

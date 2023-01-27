@@ -13,17 +13,14 @@ public class Friend {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
-    @Column(
-            name = "friend_id",
-            nullable = false
-    )
-    private int friendId;
+    private Integer id;
+    @OneToOne
+    @JoinColumn(name = "friend_id")
+    private AppUserPlate friendPlate;
     @Column(name = "added")
     private boolean added;
 
-    public Friend(int friendId, boolean added) {
-        this.friendId = friendId;
-        this.added = added;
+    public Friend(AppUserPlate friendPlate) {
+        this.friendPlate = friendPlate;
     }
 }

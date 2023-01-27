@@ -1,9 +1,11 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.CommentRepository;
+import com.friend.your.vprojecte.dao.LikeJpaRepository;
 import com.friend.your.vprojecte.dao.PostRepository;
 import com.friend.your.vprojecte.dao.UserPlateJPARepository;
 import com.friend.your.vprojecte.dto.CommentDto;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserPlateJPARepository userPlateRepository;
+    private final LikeJpaRepository likeRepository;
 
     @Override
     public Page<Post> findAll(int pageNo, int pageSize) {
@@ -37,33 +40,31 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void like(int idOfPost, String userLogin) {
+    public void like(Integer idOfPost, String userLogin) {
         log.info("Adding like from user with login {} to the post {}", userLogin, idOfPost);
 
-
-        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
         AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
 
-        post.getLikes().add(new Like(userPlate.getUserId()));
-        postRepository.save(post);
+        Like newLike = new Like(userPlate.getUserId());
+
+        newLike.setPostId(idOfPost);
+
+        likeRepository.save(newLike);
     }
 
     @Override
-    public void removeLike(int idOfPost, String userLogin) {
+    public void removeLike(Integer idOfPost, String userLogin) {
         log.info("Removing like of user with login {} from the post {}", userLogin, idOfPost);
 
         AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Like like = new Like(userPlate.getUserId());
-        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
 
-        post.getLikes().remove(like);
-        postRepository.save(post);
+        likeRepository.deleteByUserIdAndPostId(userPlate.getUserId(), idOfPost);
     }
 
     @Override
-    public Page<Comment> showComments(int pageNo, int pageSize, int idOfPost) {
+    public Page<Comment> showComments(int pageNo, int pageSize, Integer idOfPost) {
         log.info("Requesting comments page {} of size {} from post {}", pageNo, pageSize, idOfPost);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -72,34 +73,44 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void comment(int idOfPost, CommentDto commentDto) {
+    public Comment comment(Integer idOfPost, CommentDto commentDto) {
         log.info("Adding comment from user with login {} to the post {}", commentDto.getUserLogin(), idOfPost);
 
         Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
         AppUserPlate userPlate = userPlateRepository.findByLogin(commentDto.getUserLogin())
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Comment newComment = new Comment(commentDto.getId(), commentDto.getMessage());
+        Comment newComment = new Comment();
 
+        newComment.setMessage(commentDto.getMessage());
+        newComment.setCreationDate(LocalDateTime.now());
         newComment.setCreatedBy(userPlate);
-        if(commentDto.getId() == null) {
-            newComment.setCreationDate(LocalDateTime.now());
-        } else {
-            newComment.setCreationDate(commentDto.getCreatedDate());
-        }
+        newComment.setPostId(idOfPost);
 
-        post.getComments().add(newComment);
+        return commentRepository.save(newComment);
     }
 
     @Override
-    public void share(Post post, AppUser receivingUser) {
+    public void share(PostDto post, String receivingUser) {
 
         // TODO:PostService: share - add share option after adding messaging
     }
 
     @Override
-    public Post makePost(Post post) {
-        // TODO:PostService: makePost - add support for sharing media files
+    public PostDto makePost(PostDto post) {
+        // TODO:PostService: makePost - add support for posting media files
 
-        return postRepository.save(post);
+        log.info("Creating new post for newsfeed");
+
+        Post savedPost = postRepository.save(new Post(
+                post.getUserLogin(),
+                post.getDescription(),
+                post.getUrl(),
+                LocalDateTime.now()
+        ));
+
+        post.setId(savedPost.getId());
+        post.setCreationDate(savedPost.getCreationDate());
+
+        return post;
     }
 }

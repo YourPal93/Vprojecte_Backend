@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import java.util.Collection;
 import java.util.List;
 
 public class PageUtil<E extends Object> {
@@ -17,6 +18,21 @@ public class PageUtil<E extends Object> {
         }
 
         List<T> itemsSubList = items.subList(start, end);
+
+        Page<T> page = new PageImpl<>(itemsSubList, PageRequest.of(pageNo, pageSize), items.size());
+
+        return page;
+    }
+
+    public static <T> Page<T>  pageFromCollection(int pageNo, int pageSize, Collection<T> items) {
+        int start = pageNo * pageSize;
+        int end = start + pageSize;
+
+        if(end > items.size()) {
+            end = items.size();
+        }
+
+        List<T> itemsSubList = items.stream().toList();
 
         Page<T> page = new PageImpl<>(itemsSubList, PageRequest.of(pageNo, pageSize), items.size());
 

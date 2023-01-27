@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Setter
 public class AppUserDto {
 
+    private Integer id;
     private String name;
     private String password;
     private String login;

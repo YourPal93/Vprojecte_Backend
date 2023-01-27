@@ -13,12 +13,15 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     @Column(
             name = "message",
             columnDefinition = "TEXT"
     )
     private String message;
+
+    @Column(name = "post_id")
+    private Integer postId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -28,7 +31,7 @@ public class Comment {
     private LocalDateTime creationDate;
 
 
-    public Comment(int id, String message) {
+    public Comment(Integer id, String message) {
         this.id = id;
         this.message = message;
     }

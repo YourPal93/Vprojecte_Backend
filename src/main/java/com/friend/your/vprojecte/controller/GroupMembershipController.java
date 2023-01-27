@@ -1,6 +1,8 @@
 package com.friend.your.vprojecte.controller;
 
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.AddRequest;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Group;
 import com.friend.your.vprojecte.entity.Post;
 import com.friend.your.vprojecte.service.GroupMembershipService;
@@ -28,7 +30,7 @@ public class GroupMembershipController {
     }
 
     @GetMapping("/{idOfGroup}")
-    public ResponseEntity<Group> findGroup(int idOfGroup) {
+    public ResponseEntity<Group> findGroup(Integer idOfGroup) {
 
         return new ResponseEntity<>(membershipService.findGroup(idOfGroup), HttpStatus.OK);
     }
@@ -44,27 +46,23 @@ public class GroupMembershipController {
     }
 
     @PostMapping("/{idOfGroup}/members")
-    public ResponseEntity<String> joinGroup(@PathVariable int idOfGroup) {
+    public ResponseEntity<AppUserPlate> joinGroup(@PathVariable Integer idOfGroup) {
 
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        membershipService.addMember(idOfGroup, userLogin);
-
-        return new ResponseEntity<>("Successfully joined the group", HttpStatus.CREATED);
+        return new ResponseEntity<>(membershipService.addMember(idOfGroup, userLogin), HttpStatus.CREATED);
     }
 
     @PostMapping("/request")
-    public ResponseEntity<String> sendMembershipRequest(@RequestBody AddRequest request) {
-        membershipService.sendMembershipRequest(request);
+    public ResponseEntity<AddRequest> sendMembershipRequest(@RequestBody AddRequest request) {
 
-        return new ResponseEntity<>("Request has been sent", HttpStatus.CREATED);
+        return new ResponseEntity<>(membershipService.sendMembershipRequest(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/{idOfGroup}/feed")
-    public ResponseEntity<String> makeGroupPost(@PathVariable int idOfGroup, @RequestBody Post post) {
-        membershipService.makePost(idOfGroup, post);
+    public ResponseEntity<PostDto> makeGroupPost(@PathVariable Integer idOfGroup, @RequestBody Post post) {
 
-        return new ResponseEntity<>("Post created successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>(membershipService.makePost(idOfGroup, post), HttpStatus.CREATED);
     }
 
 }

@@ -1,9 +1,12 @@
 package com.friend.your.vprojecte.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -13,12 +16,12 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Integer id;
     @Column(
             name = "author",
             nullable = false
     )
-    private int author;
+    private Integer author;
     @Column(
             name = "message_content",
             nullable = false,
@@ -26,7 +29,10 @@ public class Message {
     )
     private String messageContent;
 
-    public Message(int author, String messageContent) {
+    @Column(name = "chat_id")
+    private Integer chatId;
+
+    public Message(Integer author, String messageContent) {
         this.author = author;
         this.messageContent = messageContent;
     }

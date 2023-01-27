@@ -39,7 +39,7 @@ public class VideoController {
 
         videoService.save(file, videoName);
 
-        return new ResponseEntity<>("Video saved successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>(videoName, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{videoName}")

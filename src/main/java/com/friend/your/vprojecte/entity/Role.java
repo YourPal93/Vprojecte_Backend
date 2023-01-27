@@ -12,7 +12,7 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Integer id;
     @Column(
             name = "name",
             nullable = false,
@@ -24,17 +24,17 @@ public class Role {
             name = "user_id",
             nullable = false
     )
-    private int userId;
+    private Integer userId;
 
     @Column(name = "role_type")
     private int type;
 
-    public Role(String name, int userId) {
+    public Role(String name, Integer userId) {
         this.name = name;
         this.userId = userId;
     }
 
-    public Role(String name, int userId, int type) {
+    public Role(String name, Integer userId, int type) {
         this.name = name;
         this.userId = userId;
         this.type = type;

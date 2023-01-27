@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.List;
 
@@ -16,15 +17,18 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Integer id;
 
     @Column(
-            name = "user_id",
+            name = "user_login",
             nullable = false
     )
-    private int userId;
+    private String userLogin;
 
-    @Column(name = "description")
+    @Column(
+            name = "description",
+            columnDefinition = "TEXT"
+    )
     private String description;
 
     @Column(name = "url")
@@ -35,11 +39,7 @@ public class Post {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JoinTable(
-            name = "posts_likes",
-            joinColumns = @JoinColumn(name = "post_id"),
-            inverseJoinColumns = @JoinColumn(name = "like_id")
-    )
+    @JoinColumn(name = "post_id")
     private Set<Like> likes;
 
     @OneToMany(
@@ -50,16 +50,16 @@ public class Post {
     @JoinColumn(name = "post_id")
     private List<Comment> comments;
 
-    @Column(name = "date_of_post")
-    private LocalDate dateOfPost;
+    @Column(name = "creation_date")
+    private LocalDateTime creationDate;
 
     @Column(name = "post_type")
     private int type;
 
-    public Post(int userId, String description, String url, LocalDate dateOfPost) {
-        this.userId = userId;
+    public Post(String userLogin, String description, String url, LocalDateTime creationDate) {
+        this.userLogin = userLogin;
         this.description = description;
         this.url = url;
-        this.dateOfPost = dateOfPost;
+        this.creationDate = creationDate;
     }
 }

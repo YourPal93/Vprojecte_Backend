@@ -1,25 +1,21 @@
 package com.friend.your.vprojecte.controller;
 
 import com.friend.your.vprojecte.dto.CommentDto;
-import com.friend.your.vprojecte.entity.AppUser;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.Comment;
 import com.friend.your.vprojecte.entity.Post;
 import com.friend.your.vprojecte.service.PostService;
-import com.friend.your.vprojecte.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/posts")
-public class FeedController {
+public class PostController {
 
     private final PostService postService;
 
@@ -33,7 +29,7 @@ public class FeedController {
     }
 
     @PostMapping("/like/{idOfPost}")
-    public ResponseEntity<String> likePost(@PathVariable int idOfPost) {
+    public ResponseEntity<String> likePost(@PathVariable Integer idOfPost) {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -43,7 +39,7 @@ public class FeedController {
     }
 
     @PutMapping("/like/{idOfPost}")
-    public ResponseEntity<String> removeLikeFromPost(@PathVariable int idOfPost) {
+    public ResponseEntity<String> removeLikeFromPost(@PathVariable Integer idOfPost) {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -52,28 +48,30 @@ public class FeedController {
         return new ResponseEntity<>("Like removed", HttpStatus.OK);
     }
 
-    @GetMapping("/comment/{idOfPost}")
+    @GetMapping("/comments/{idOfPost}")
     public ResponseEntity<Page<Comment>> getComments(
-            @PathVariable int idOfPost,
+            @PathVariable Integer idOfPost,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
         return new ResponseEntity<>(postService.showComments(pageNo, pageSize, idOfPost), HttpStatus.OK);
     }
 
-    @PostMapping("/comment/{idOfPost}")
-    public ResponseEntity<String> commentOnPost(@PathVariable int idOfPost, @RequestBody CommentDto commentDto) {
+    @PostMapping("/comments/{idOfPost}")
+    public ResponseEntity<Comment> commentOnPost(@PathVariable Integer idOfPost, @RequestBody CommentDto commentDto) {
 
-        postService.comment(idOfPost, commentDto);
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return new ResponseEntity<>("Commented", HttpStatus.CREATED);
+        commentDto.setUserLogin(login);
+
+        return new ResponseEntity<>(postService.comment(idOfPost, commentDto), HttpStatus.CREATED);
     }
 
-    @PostMapping("/make")
-    public ResponseEntity<String> createPost(@RequestBody Post post) {
+    @PostMapping("/")
+    public ResponseEntity<PostDto> createPost(@RequestBody PostDto post) {
 
-        postService.makePost(post);
-
-        return new ResponseEntity<>("Post created", HttpStatus.CREATED);
+        return new ResponseEntity<>(postService.makePost(post), HttpStatus.CREATED);
     }
+
+    // TODO: add support for editing end deleting comments
 }

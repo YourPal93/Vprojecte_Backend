@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class AppUserPlate {
     @Id
     @Column(name = "user_id")
-    private int userId;
+    private Integer userId;
     @Column(name = "user_login")
     private String login;
 

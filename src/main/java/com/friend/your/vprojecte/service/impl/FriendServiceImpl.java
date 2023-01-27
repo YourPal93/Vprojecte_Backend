@@ -8,9 +8,11 @@ import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Friend;
 import com.friend.your.vprojecte.service.FriendService;
 import com.friend.your.vprojecte.service.UserService;
+import com.friend.your.vprojecte.utility.PageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,29 +31,31 @@ public class FriendServiceImpl implements FriendService {
 
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
-
     private final UserPlateJPARepository userPlateRepository;
 
     @Override
-    public Page<AppUser> findAllFriends(int pageNo, int pageSize, String login) {
+    public Page<AppUserPlate> findAllFriends(int pageNo, int pageSize, String login) {
         log.info("Request friend list for user {}", login);
 
         AppUser user = userRepository.findByLogin(login)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        List<Integer> friendIds = new ArrayList<>();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Friend> friendsPage = friendRepository.findAll(pageable);
+        Page<AppUserPlate> returnPage = new PageImpl<>(
+                friendsPage.stream().map(Friend::getFriendPlate).toList(),
+                pageable,
+                friendsPage.getTotalElements()
+        );
 
-        friendIds.addAll(user.getFriendList().stream().map(Friend::getFriendId).toList());
-
-        return userRepository.findByIdIn(friendIds, pageable);
+        return returnPage;
     }
 
     @Override
-    public AppUser findFriend(String loginOfFriend) {
+    public AppUserPlate findFriend(String loginOfFriend) {
         log.info("Requesting friend {} from the database", loginOfFriend);
 
-        AppUser user = userRepository
-                .findByLogin(loginOfFriend).orElseThrow(() -> new RuntimeException("User not found"));
+        AppUserPlate user = userPlateRepository
+                .findByLogin(loginOfFriend).orElseThrow(() -> new RuntimeException("User plate not found"));
 
         return user;
     }
@@ -65,29 +70,23 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public AppUser addFriend(String loginOfUser, int idOfUserToAdd) {
+    public AppUserPlate addFriend(String loginOfUser, Integer idOfUserToAdd) {
         // TODO:FriendService: addFriend - add support for accept frined request/leave in followers
-        log.info("Adding friend {} to user {}", idOfUserToAdd, loginOfUser);
 
-        AppUser user = userRepository.findByLogin(loginOfUser)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Friend friendToAdd = new Friend(idOfUserToAdd, true);
+        AppUserPlate userPlate = userPlateRepository.findByLogin(loginOfUser)
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+        Friend newFriend = new Friend(userPlate);
 
-        user.getFriendList().add(friendToAdd);
+        newFriend.setAdded(true);
+        friendRepository.save(newFriend);
 
-        return userRepository.save(user);
+        return userPlate;
     }
 
     @Override
-    public void deleteFriend(String loginOfUser, int idOfFriend) {
+    public void deleteFriend(String loginOfUser, Integer idOfFriend) {
         log.info("Deleting friend {} from user {} friend list", idOfFriend, loginOfUser);
 
-        AppUser user = userRepository.findByLogin(loginOfUser)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Friend friend = friendRepository.findById(idOfFriend)
-                .orElseThrow(() -> new RuntimeException("Friend not found"));
-
-        user.getFriendList().remove(friend);
-        userRepository.save(user);
+        friendRepository.deleteById(idOfFriend);
     }
 }

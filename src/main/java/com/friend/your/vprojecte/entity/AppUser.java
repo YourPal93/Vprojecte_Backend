@@ -51,12 +51,20 @@ public class AppUser {
     @JoinColumn(name = "user_id")
     private Set<Friend> friendList;
 
-    @OneToMany(
+    @ManyToMany(
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH,
+                    CascadeType.MERGE
+            }
     )
-    @JoinColumn(name = "user_id")
+    @JoinTable(
+            name = "users_chats",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "chat_id")
+    )
     private List<Chat> chatLog;
 
     @OneToMany(

@@ -1,5 +1,6 @@
 package com.friend.your.vprojecte.service;
 
+import com.friend.your.vprojecte.dto.AppUserCredentialsDto;
 import com.friend.your.vprojecte.dto.AppUserDto;
 import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.AppUser;
@@ -11,26 +12,26 @@ import org.springframework.data.domain.Page;
 public interface UserService {
 
     // измени меня
-    Page<AppUser> findAll(int pageNo, int pageSize);
+    Page<AppUserPlate> findAll(int pageNo, int pageSize);
 
     AppUserPlate findUserPlate(String login);
 
-    AppUser findById(int id);
+    AppUserDto findById(Integer id);
 
     AppUserDto findByLogin(String login);
 
     Page<AppUserPlate> findByLoginMatch(int pageNo, int pageSize, String login);
     Boolean exist(String login);
 
-    AppUser save(AppUserDto userDto);
+    AppUserDto save(AppUserDto userDto);
 
-    AppUser update(AppUserDto userDto);
+    AppUserDto update(String userLogin, AppUserDto userDto);
 
-    void delete(int id);
+    void delete(Integer id);
 
     Page<Chat> getChatLogs(int pageNo, int pageSize, String loginOfUser);
 
-    Page<PostDto> getUserWall(int pageNo, int pageSize, int userId);
+    Page<PostDto> getUserWall(int pageNo, int pageSize, Integer userId);
 
-    void addPostToUser(Post post, int userId);
+    PostDto addPostToUser(Post post, Integer userId);
 }

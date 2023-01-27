@@ -1,20 +1,24 @@
 package com.friend.your.vprojecte.service;
 
+import com.friend.your.vprojecte.dto.ChatDto;
+import com.friend.your.vprojecte.entity.AppUserPlate;
 import com.friend.your.vprojecte.entity.Chat;
 import com.friend.your.vprojecte.entity.Message;
 import org.springframework.data.domain.Page;
 
 public interface MessagingService {
 
-    Chat createChat(int senderId, int receiverId);
+    Page<ChatDto> getUserChats(int pageNo, int pageSize, Integer userId);
 
-    Chat findChat(String chatId);
+    ChatDto createChat(AppUserPlate senderPlate, Integer receiverId);
 
-    Page<Message> getChatMessageLog(int pageNo, int pageSize, String idOfChat);
+    ChatDto findChat(Integer chatId);
 
-    Message sendMessage(String idOfChat, Message newMessage);
+    Page<Message> getChatMessageLog(int pageNo, int pageSize, Integer idOfChat);
 
-    void deleteChat(String idOfChat);
+    Message sendMessage(Integer idOfChat, Message newMessage);
 
-    void deleteMessage(String idOfChat, int idOfMessage);
+    void deleteChat(Integer idOfChat);
+
+    void deleteMessage(Integer idOfMessage);
 }

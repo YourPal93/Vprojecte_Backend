@@ -1,6 +1,7 @@
 package com.friend.your.vprojecte.service;
 
 import com.friend.your.vprojecte.dto.CommentDto;
+import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.Comment;
 import com.friend.your.vprojecte.entity.Post;
@@ -11,15 +12,15 @@ public interface PostService {
 
     public Page<Post> findAll(int pageNo, int pageSize);
 
-    public void like(int idOfPost, String userLogin);
+    public void like(Integer idOfPost, String userLogin);
 
-    public void removeLike(int idOfPost, String userLogin);
+    public void removeLike(Integer idOfPost, String userLogin);
 
-    public Page<Comment> showComments(int pageNo, int pageSize, int idOfPost);
+    public Page<Comment> showComments(int pageNo, int pageSize, Integer idOfPost);
 
-    public void comment(int idOfPost, CommentDto commentDto);
+    public Comment comment(Integer idOfPost, CommentDto commentDto);
 
-    public void share(Post post, AppUser user);
+    public void share(PostDto post, String receivingUser);
 
-    public Post makePost(Post post);
+    public PostDto makePost(PostDto post);
 }

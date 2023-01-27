@@ -39,7 +39,7 @@ public class MusicController {
 
         musicService.save(file, songName);
 
-        return new ResponseEntity<>("Song saved successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>(songName, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{songName}")
