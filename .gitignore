@@ -42,4 +42,3 @@ logs/spring-boot-logger.log
 _docker-compose.yml
 docker-compose.yml
 *.log
-ecs-push-assignment-app.sh
