@@ -34,3 +34,13 @@ build/
 
 ### Custom ignores ###
 **/*Proba.java
+mvnw.cmd
+mvnw
+src/main/resources/application.properties
+docker-compose.yml
+docker-compose-local.yml
+logs/spring-boot-logger.log
+_docker-compose.yml
+docker-compose.yml
+*.log
+ecs-push-assignment-app.sh
