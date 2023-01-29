@@ -1,4 +1,4 @@
-# Vprojecte_Backend
+# Vprojecte_back-end
 Стэк: 
       Spring boot(data, web, security, test), 
       Java 17, 
