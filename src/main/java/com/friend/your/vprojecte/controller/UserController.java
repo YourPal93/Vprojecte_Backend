@@ -31,7 +31,7 @@ public class UserController {
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
 
-        return new ResponseEntity<>(userService.findAll(pageNo, pageSize), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findAllUsers(pageNo, pageSize), HttpStatus.OK);
     }
 
     @GetMapping("/my_page")
@@ -39,15 +39,15 @@ public class UserController {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return new ResponseEntity<>(userService.findByLogin(login), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findUser(login), HttpStatus.OK);
     }
 
-    @GetMapping("/find/{login}")
+    @GetMapping("/{login}")
     public ResponseEntity<AppUserDto> findByLogin(@PathVariable String login) {
-        return new ResponseEntity<>(userService.findByLogin(login), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findUser(login), HttpStatus.OK);
     }
 
-    @GetMapping("/find/{login}/match")
+    @GetMapping("/{login}/match")
     public ResponseEntity<Page<AppUserPlate>> findByLoginMatch(
             @PathVariable String login,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -57,57 +57,62 @@ public class UserController {
         return new ResponseEntity<>(userService.findByLoginMatch(pageNo, pageSize, login), HttpStatus.OK);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/")
     public ResponseEntity<AppUserDto> updateUser(@RequestBody AppUserDto user) {
 
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return new ResponseEntity<>(userService.update(userLogin, user), HttpStatus.OK);
+        return new ResponseEntity<>(userService.updateUser(userLogin, user), HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
-        userService.delete(id);
+        userService.deleteUser(id);
 
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
-    @GetMapping("/friend_list")
-    public ResponseEntity<Page<AppUserPlate>> friendList(
+    @GetMapping("/{userLogin}/friend_list")
+    public ResponseEntity<Page<AppUserPlate>> userFriendList(
+            @PathVariable String userLogin,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
 
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        return new ResponseEntity<>(friendService.findAllFriends(pageNo, pageSize, login), HttpStatus.OK);
+        return new ResponseEntity<>(friendService.getUserFriendList(pageNo, pageSize, userLogin), HttpStatus.OK);
     }
 
-    @GetMapping("/friend/find/{login}")
-    public ResponseEntity<AppUserPlate> findFriend(@PathVariable String login) {
-        return new ResponseEntity<>(friendService.findFriend(login), HttpStatus.OK);
+    @GetMapping("/friends/{friendLogin}")
+    public ResponseEntity<AppUserPlate> findFriend(@PathVariable String friendLogin) {
+
+        String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return new ResponseEntity<>(friendService.findFriend(userLogin, friendLogin), HttpStatus.OK);
     }
 
-    @GetMapping("/friend/find/{login}/match")
+    @GetMapping("/friends/{friendLogin}/match")
     public ResponseEntity<Page<AppUserPlate>> findFriendsMatch(
-            @PathVariable String login,
+            @PathVariable String friendLogin,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
 
-        return new ResponseEntity<>(friendService.findFriendsMatch(pageNo, pageSize, login), HttpStatus.OK);
+        String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        return new ResponseEntity<>(
+                friendService.findFriendsMatch(pageNo, pageSize, userLogin, friendLogin), HttpStatus.OK);
     }
 
-    @PostMapping("/friend/add/{id}")
-    public ResponseEntity<String> addFriend(@PathVariable Integer id) {
+    @PostMapping("/friends")
+    public ResponseEntity<String> addFriend(@RequestBody AppUserPlate userPlateToAdd) {
 
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        friendService.addFriend(login, id);
-        return new ResponseEntity<>("Friend has been added", HttpStatus.CREATED);
+        friendService.addFriendToUser(userLogin, userPlateToAdd);
+        return new ResponseEntity<>("Friend has been added", HttpStatus.OK);
     }
 
-    @DeleteMapping("/friend/delete/{id}")
+    @DeleteMapping("/friends/{id}")
     public ResponseEntity<String> deleteFriend(@PathVariable Integer id) {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -126,10 +131,8 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/posts")
-    public ResponseEntity<String> addPostToUser(@PathVariable Integer userId, @RequestBody Post post) {
+    public ResponseEntity<PostDto> addPostToUser(@PathVariable Integer userId, @RequestBody Post post) {
 
-        userService.addPostToUser(post, userId);
-
-        return new ResponseEntity<>("Success", HttpStatus.OK);
+        return new ResponseEntity<>(userService.addPostToUser(post, userId), HttpStatus.CREATED);
     }
 }

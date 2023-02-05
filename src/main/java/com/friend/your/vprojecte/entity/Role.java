@@ -15,28 +15,17 @@ public class Role {
     private Integer id;
     @Column(
             name = "name",
-            nullable = false,
-            unique = true
+            nullable = false
     )
     private String name;
 
-    @Column(
-            name = "user_id",
-            nullable = false
-    )
+    @Column(name = "user_id")
     private Integer userId;
 
     @Column(name = "role_type")
-    private int type;
+    private int roleType;
 
-    public Role(String name, Integer userId) {
+    public Role(String name) {
         this.name = name;
-        this.userId = userId;
-    }
-
-    public Role(String name, Integer userId, int type) {
-        this.name = name;
-        this.userId = userId;
-        this.type = type;
     }
 }

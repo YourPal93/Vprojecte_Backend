@@ -8,17 +8,15 @@ import org.springframework.data.domain.Page;
 
 public interface MessagingService {
 
-    Page<ChatDto> getUserChats(int pageNo, int pageSize, Integer userId);
+    Page<ChatDto> getUserChatLog(int pageNo, int pageSize, Integer userId);
 
-    ChatDto createChat(AppUserPlate senderPlate, Integer receiverId);
+    ChatDto createChat(String userLogin, String receiverLogin);
 
-    ChatDto findChat(Integer chatId);
+    Page<Message> getChatMessageLog(int pageNo, int pageSize, Integer chatId);
 
-    Page<Message> getChatMessageLog(int pageNo, int pageSize, Integer idOfChat);
+    AppUserPlate sendMessage(Integer chatId, Message newMessage);
 
-    Message sendMessage(Integer idOfChat, Message newMessage);
+    void deleteChat(Integer chatId);
 
-    void deleteChat(Integer idOfChat);
-
-    void deleteMessage(Integer idOfMessage);
+    void deleteMessage(Integer messageId);
 }

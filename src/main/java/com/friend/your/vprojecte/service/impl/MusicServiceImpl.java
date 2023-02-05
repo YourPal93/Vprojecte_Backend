@@ -1,6 +1,6 @@
 package com.friend.your.vprojecte.service.impl;
 
-import com.friend.your.vprojecte.dao.MusicJpaRepository;
+import com.friend.your.vprojecte.dao.MusicRepository;
 import com.friend.your.vprojecte.entity.Song;
 import com.friend.your.vprojecte.service.MusicService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @Service
 public class MusicServiceImpl implements MusicService {
 
-    private final MusicJpaRepository musicRepository;
+    private final MusicRepository musicRepository;
 
 
     @Override

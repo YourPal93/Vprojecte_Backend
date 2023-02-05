@@ -20,7 +20,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/")
-    public ResponseEntity<Page<Post>> newsFeed(
+    public ResponseEntity<Page<PostDto>> newsFeed(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
@@ -28,43 +28,39 @@ public class PostController {
         return new ResponseEntity<>(postService.findAll(pageNo, pageSize), HttpStatus.OK);
     }
 
-    @PostMapping("/like/{idOfPost}")
-    public ResponseEntity<String> likePost(@PathVariable Integer idOfPost) {
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<String> likePost(@PathVariable Integer postId) {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        postService.like(idOfPost, login);
+        postService.like(postId, login);
 
         return new ResponseEntity<>("Liked", HttpStatus.CREATED);
     }
 
-    @PutMapping("/like/{idOfPost}")
-    public ResponseEntity<String> removeLikeFromPost(@PathVariable Integer idOfPost) {
+    @DeleteMapping("/{postId}/likes")
+    public ResponseEntity<String> removeLikeFromPost(@PathVariable Integer postId) {
 
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        postService.removeLike(idOfPost, login);
+        postService.removeLike(postId, login);
 
         return new ResponseEntity<>("Like removed", HttpStatus.OK);
     }
 
-    @GetMapping("/comments/{idOfPost}")
-    public ResponseEntity<Page<Comment>> getComments(
-            @PathVariable Integer idOfPost,
+    @GetMapping("/{poseId}/comments")
+    public ResponseEntity<Page<CommentDto>> getComments(
+            @PathVariable Integer poseId,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
-        return new ResponseEntity<>(postService.showComments(pageNo, pageSize, idOfPost), HttpStatus.OK);
+        return new ResponseEntity<>(postService.getComments(pageNo, pageSize, poseId), HttpStatus.OK);
     }
 
-    @PostMapping("/comments/{idOfPost}")
-    public ResponseEntity<Comment> commentOnPost(@PathVariable Integer idOfPost, @RequestBody CommentDto commentDto) {
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentDto> commentOnPost(@PathVariable Integer postId, @RequestBody CommentDto commentDto) {
 
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        commentDto.setUserLogin(login);
-
-        return new ResponseEntity<>(postService.comment(idOfPost, commentDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(postService.addComment(postId, commentDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/")

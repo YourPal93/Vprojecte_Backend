@@ -18,14 +18,14 @@ import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/messaging")
+@RequestMapping("/chats")
 public class MessagingController {
 
     private final MessagingService messagingService;
     private final UserService userService;
 
 
-    @GetMapping("/chats/{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<Page<ChatDto>> getUserChats(
             @PathVariable Integer userId,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -33,16 +33,15 @@ public class MessagingController {
 
     ) {
 
-        return new ResponseEntity<>(messagingService.getUserChats(pageNo, pageSize, userId), HttpStatus.OK);
+        return new ResponseEntity<>(messagingService.getUserChatLog(pageNo, pageSize, userId), HttpStatus.OK);
     }
 
-    @PostMapping("/chats/{receiverId}")
-    public ResponseEntity<ChatDto> createNewChat(@PathVariable Integer receiverId) {
+    @PostMapping("/{receiverLogin}")
+    public ResponseEntity<ChatDto> createNewChat(@PathVariable String receiverLogin) {
 
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
-        AppUserPlate senderPlate = userService.findUserPlate(userLogin);
 
-        return new ResponseEntity<>(messagingService.createChat(senderPlate, receiverId), HttpStatus.CREATED);
+        return new ResponseEntity<>(messagingService.createChat(userLogin, receiverLogin), HttpStatus.CREATED);
     }
 
     @GetMapping("/{idOfChat}/message_log")
@@ -56,9 +55,9 @@ public class MessagingController {
     }
 
 
-    @PostMapping("/{idOfChat}/message_log")
-    public ResponseEntity<Message> sendMessage(@PathVariable Integer idOfChat, @RequestBody Message newMessage) {
-        return new ResponseEntity<>(messagingService.sendMessage(idOfChat, newMessage), HttpStatus.CREATED);
+    @PostMapping("/{chatId}/message_log")
+    public ResponseEntity<AppUserPlate> sendMessage(@PathVariable Integer chatId, @RequestBody Message newMessage) {
+        return new ResponseEntity<>(messagingService.sendMessage(chatId, newMessage), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{idOfChat}")
@@ -68,7 +67,7 @@ public class MessagingController {
         return new ResponseEntity<>("Chat successfully deleted", HttpStatus.OK);
     }
 
-    @DeleteMapping("/chats/messages/{idOfMessage}")
+    @DeleteMapping("/message_log/{idOfMessage}")
     public ResponseEntity<String> deleteMessage(@PathVariable Integer idOfMessage) {
         messagingService.deleteMessage(idOfMessage);
 

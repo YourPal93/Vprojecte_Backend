@@ -3,14 +3,21 @@ package com.friend.your.vprojecte.service;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.Role;
 
+import java.util.Set;
+
 public interface RoleService {
 
-    public Role saveRole(Role role);
 
-    public void deleteRole(Role role);
+    void addRoleToUser(Integer userId, Role role);
 
-    public void deleteRoleAll(String roleName);
+    Role getUserRole(Integer userId, String roleName);
 
-    public AppUser addRoleToUser(AppUser user, Role role);
-    public AppUser addGroupRoleToUser(AppUser user, Role role);
+    Set<Role> getUserRoles(Integer userId, Integer roleType);
+    void updateUserRole(Role role);
+
+    boolean exists(String roleName, Integer userId);
+
+    void deleteRoleFromUser(String roleName, Integer userId);
+
+    void deleteAllRolesFromGroup(String groupRoleName);
 }

@@ -4,11 +4,14 @@ import com.friend.your.vprojecte.dao.RoleRepository;
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.entity.AppUser;
 import com.friend.your.vprojecte.entity.Role;
+import com.friend.your.vprojecte.enums.RoleTypes;
 import com.friend.your.vprojecte.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -18,42 +21,55 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
-
     @Override
-    public Role saveRole(Role role) {
-        log.info("Saving role: {}", role.getName());
+    public void addRoleToUser(Integer userId, Role role) {
+        log.info("Adding role '{}' to user '{}'", role.getName(), userId);
 
-        return roleRepository.save(role);
-    }
-    @Override
-    public void deleteRole(Role role) {
-        log.info("Deleting role {} from user {}", role.getName(), role.getUserId());
+        role.setUserId(userId);
 
-        roleRepository.deleteByNameAndUserId(role.getName(), role.getUserId());
+        roleRepository.save(role);
     }
 
     @Override
-    public void deleteRoleAll(String roleName) {
-        log.info("Deleting roles {}", roleName);
+    public Role getUserRole(Integer userId, String roleName) {
+        log.info("Requesting user role with name {} for user with id {}", roleName, userId);
 
-        roleRepository.deleteByName(roleName);
-    }
-    @Override
-    public AppUser addRoleToUser(AppUser user, Role role) {
-        log.info("Adding role '{}' to user '{}'", role.getName(), user.getLogin());
-
-        user.getRoles().add(role);
-
-        return userRepository.save(user);
+        return roleRepository.findByNameAndUserId(roleName, userId)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
     }
 
     @Override
-    public AppUser addGroupRoleToUser(AppUser user, Role role) {
-        log.info("Adding group  role '{}' to user '{}'", role.getName(), user.getLogin());
+    public Set<Role> getUserRoles(Integer userId, Integer roleType) {
+        log.info("Requesting user roles of type {} from user with id {}", roleType, userId);
 
-        role.setType(1);
-        user.getGroupRoles().add(role);
+        return roleRepository.findByUserIdAndRoleType(userId, roleType);
+    }
+    @Override
+    public void updateUserRole(Role role) {
+        log.info("Updating role with name {} of user with id {}", role.getName(), role.getUserId());
 
-        return userRepository.save(user);
+        roleRepository.save(role);
+    }
+
+    @Override
+    public boolean exists(String roleName, Integer userId) {
+        log.info("Checking if role with name {} and user Id {} exists", roleName, userId);
+
+        return roleRepository.existsByNameAndUserId(roleName, userId);
+    }
+
+
+    @Override
+    public void deleteRoleFromUser(String roleName, Integer userId) {
+        log.info("Deleting role with name {} from user with id {}", roleName, userId);
+
+        roleRepository.deleteByNameAndUserId(roleName, userId);
+    }
+
+    @Override
+    public void deleteAllRolesFromGroup(String groupRoleName) {
+        log.info("Deleting group roles with name {}", groupRoleName);
+
+        roleRepository.deleteByName(groupRoleName);
     }
 }

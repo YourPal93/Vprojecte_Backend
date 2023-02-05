@@ -15,6 +15,6 @@ public class AppUserPlate {
     @Column(name = "user_id")
     private Integer userId;
     @Column(name = "user_login")
-    private String login;
+    private String userLogin;
 
 }

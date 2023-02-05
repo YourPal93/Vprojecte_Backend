@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface MusicJpaRepository extends JpaRepository<Song, Integer> {
+public interface MusicRepository extends JpaRepository<Song, Integer> {
 
     Optional<Song> findByName(String name);
 

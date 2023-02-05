@@ -1,6 +1,6 @@
 package com.friend.your.vprojecte.service.impl;
 
-import com.friend.your.vprojecte.dao.VideoJpaRepository;
+import com.friend.your.vprojecte.dao.VideoRepository;
 import com.friend.your.vprojecte.entity.Video;
 import com.friend.your.vprojecte.service.VideoService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class VideoServiceImpl implements VideoService {
 
-    private final VideoJpaRepository videoRepository;
+    private final VideoRepository videoRepository;
 
 
     @Override

@@ -51,7 +51,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                // TODO: change permissions after front end development
+                // TODO: change permissions after adding support for refreshing jwt tokens
                 // .antMatchers("/api/**").permitAll()
                 .antMatchers("/**").permitAll()
                 .anyRequest()

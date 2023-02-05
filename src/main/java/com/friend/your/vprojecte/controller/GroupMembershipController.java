@@ -1,10 +1,8 @@
 package com.friend.your.vprojecte.controller;
 
+import com.friend.your.vprojecte.dto.GroupDto;
 import com.friend.your.vprojecte.dto.PostDto;
-import com.friend.your.vprojecte.entity.AddRequest;
-import com.friend.your.vprojecte.entity.AppUserPlate;
-import com.friend.your.vprojecte.entity.Group;
-import com.friend.your.vprojecte.entity.Post;
+import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.GroupMembershipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,52 +15,48 @@ import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/groups")
 public class GroupMembershipController {
 
     private final GroupMembershipService membershipService;
     @GetMapping("/")
-    public ResponseEntity<Page<Group>> findAll(
+    public ResponseEntity<Page<GroupDto>> findAll(
             @RequestParam(name = "PageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "PageSize", defaultValue = "10", required = false) int pageSize) {
 
         return new ResponseEntity<>(membershipService.findAll(pageNo, pageSize), HttpStatus.OK);
     }
 
-    @GetMapping("/{idOfGroup}")
-    public ResponseEntity<Group> findGroup(Integer idOfGroup) {
-
-        return new ResponseEntity<>(membershipService.findGroup(idOfGroup), HttpStatus.OK);
-    }
-
-    @GetMapping("/{nameOfGroup}/match")
-    public ResponseEntity<Page<Group>> findGroupMatch(
-            @PathVariable String nameOfGroup,
+    @GetMapping("/{groupName}/match")
+    public ResponseEntity<Page<GroupDto>> findGroupMatch(
+            @PathVariable String groupName,
             @RequestParam(name = "PageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "PageSize", defaultValue = "10", required = false) int pageSize
             ) {
 
-        return new ResponseEntity<>(membershipService.findByNameMatch(pageNo,pageSize, nameOfGroup), HttpStatus.OK);
+        return new ResponseEntity<>(membershipService.findByNameMatch(pageNo,pageSize, groupName), HttpStatus.OK);
     }
 
-    @PostMapping("/{idOfGroup}/members")
-    public ResponseEntity<AppUserPlate> joinGroup(@PathVariable Integer idOfGroup) {
+    @PostMapping("/{groupId}/members")
+    public ResponseEntity<Role> joinGroup(@PathVariable Integer groupId) {
 
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return new ResponseEntity<>(membershipService.addMember(idOfGroup, userLogin), HttpStatus.CREATED);
+        return new ResponseEntity<>(membershipService.joinGroup(groupId, userLogin), HttpStatus.CREATED);
     }
 
-    @PostMapping("/request")
-    public ResponseEntity<AddRequest> sendMembershipRequest(@RequestBody AddRequest request) {
+    @PostMapping("/requests")
+    public ResponseEntity<String> sendMembershipRequest(@RequestBody AddRequest request) {
 
-        return new ResponseEntity<>(membershipService.sendMembershipRequest(request), HttpStatus.CREATED);
+        membershipService.sendMembershipRequest(request);
+
+        return new ResponseEntity<>("Membership request has been sent", HttpStatus.CREATED);
     }
 
-    @PostMapping("/{idOfGroup}/feed")
-    public ResponseEntity<PostDto> makeGroupPost(@PathVariable Integer idOfGroup, @RequestBody Post post) {
+    @PostMapping("/{groupId}/feed")
+    public ResponseEntity<PostDto> makeGroupPost(@PathVariable Integer groupId, @RequestBody Post post) {
 
-        return new ResponseEntity<>(membershipService.makePost(idOfGroup, post), HttpStatus.CREATED);
+        return new ResponseEntity<>(membershipService.makePost(groupId, post), HttpStatus.CREATED);
     }
 
 }

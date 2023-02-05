@@ -34,7 +34,11 @@ public class ApiController {
     public ResponseEntity<String> register(@RequestBody AppUserDto userDto) {
         // TODO: ApiController: register - add validation via email
 
-        userService.save(userDto);
+        if(userService.userExists(userDto.getLogin(), userDto.getEmail())) {
+            return new ResponseEntity<>("User with the same login or email already exists", HttpStatus.BAD_REQUEST);
+        }
+
+        userService.saveUser(userDto);
 
         return new ResponseEntity<>("Registration successful", HttpStatus.CREATED);
     }
@@ -55,7 +59,7 @@ public class ApiController {
                     .body(Collections.singletonMap("username", userCredentials.getUsername()));
 
         } catch (BadCredentialsException exp) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 

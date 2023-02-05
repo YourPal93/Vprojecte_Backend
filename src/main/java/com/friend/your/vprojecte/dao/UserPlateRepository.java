@@ -7,11 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UserPlateJPARepository extends JpaRepository<AppUserPlate, Integer> {
+public interface UserPlateRepository extends JpaRepository<AppUserPlate, Integer> {
 
-    Optional<AppUserPlate> findByLogin(String login);
+    Optional<AppUserPlate> findByUserLogin(String login);
 
     Page<AppUserPlate> findAll(Pageable pageable);
 
-    Page<AppUserPlate> findByLoginContaining(String login , Pageable pageable);
+    Page<AppUserPlate> findByUserLoginContaining(String login , Pageable pageable);
+
+    boolean existsByUserLogin(String userLogin);
 }

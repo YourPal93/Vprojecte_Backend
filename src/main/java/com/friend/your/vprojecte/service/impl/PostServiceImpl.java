@@ -1,9 +1,9 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.CommentRepository;
-import com.friend.your.vprojecte.dao.LikeJpaRepository;
+import com.friend.your.vprojecte.dao.LikeRepository;
 import com.friend.your.vprojecte.dao.PostRepository;
-import com.friend.your.vprojecte.dao.UserPlateJPARepository;
+import com.friend.your.vprojecte.dao.UserPlateRepository;
 import com.friend.your.vprojecte.dto.CommentDto;
 import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,66 +26,69 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final UserPlateJPARepository userPlateRepository;
-    private final LikeJpaRepository likeRepository;
+    private final UserPlateRepository userPlateRepository;
+    private final LikeRepository likeRepository;
 
     @Override
-    public Page<Post> findAll(int pageNo, int pageSize) {
+    public Page<PostDto> findAll(int pageNo, int pageSize) {
         log.info("Requesting news feed page {} of size {}", pageNo, pageSize);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return postRepository.findAll(pageable);
+        return postRepository.findAllPostDto(pageable);
     }
 
     @Override
-    public void like(Integer idOfPost, String userLogin) {
-        log.info("Adding like from user with login {} to the post {}", userLogin, idOfPost);
+    public void like(Integer postId, String userLogin) {
+        log.info("Adding like from user with login {} to the post {}", userLogin, postId);
 
-        AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
+        AppUserPlate userPlate = userPlateRepository.findByUserLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
 
         Like newLike = new Like(userPlate.getUserId());
 
-        newLike.setPostId(idOfPost);
+        newLike.setPostId(postId);
 
         likeRepository.save(newLike);
     }
 
     @Override
-    public void removeLike(Integer idOfPost, String userLogin) {
-        log.info("Removing like of user with login {} from the post {}", userLogin, idOfPost);
+    public void removeLike(Integer postId, String userLogin) {
+        log.info("Removing like of user with login {} from the post {}", userLogin, postId);
 
-        AppUserPlate userPlate = userPlateRepository.findByLogin(userLogin)
+        AppUserPlate userPlate = userPlateRepository.findByUserLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
 
-        likeRepository.deleteByUserIdAndPostId(userPlate.getUserId(), idOfPost);
+        likeRepository.deleteByUserIdAndPostId(userPlate.getUserId(), postId);
     }
 
     @Override
-    public Page<Comment> showComments(int pageNo, int pageSize, Integer idOfPost) {
-        log.info("Requesting comments page {} of size {} from post {}", pageNo, pageSize, idOfPost);
+    public Page<CommentDto> getComments(int pageNo, int pageSize, Integer postId) {
+        log.info("Requesting comments page {} of size {} from post {}", pageNo, pageSize, postId);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return commentRepository.findAllByPostId(idOfPost, pageable);
+        return commentRepository.findAllByPostIdCommentDto(postId, pageable);
     }
 
     @Override
-    public Comment comment(Integer idOfPost, CommentDto commentDto) {
-        log.info("Adding comment from user with login {} to the post {}", commentDto.getUserLogin(), idOfPost);
+    public CommentDto addComment(Integer postId, CommentDto commentDto) {
+        log.info("Adding comment from user with login {} to the post {}", commentDto.getUserLogin(), postId);
 
-        Post post = postRepository.findById(idOfPost).orElseThrow(() -> new RuntimeException("Post not found"));
-        AppUserPlate userPlate = userPlateRepository.findByLogin(commentDto.getUserLogin())
+        AppUserPlate userPlate = userPlateRepository.findByUserLogin(commentDto.getUserLogin())
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
         Comment newComment = new Comment();
 
         newComment.setMessage(commentDto.getMessage());
         newComment.setCreationDate(LocalDateTime.now());
         newComment.setCreatedBy(userPlate);
-        newComment.setPostId(idOfPost);
+        newComment.setPostId(postId);
 
-        return commentRepository.save(newComment);
+        Comment savedComment = commentRepository.save(newComment);
+
+        commentDto.setId(savedComment.getId());
+
+        return commentDto;
     }
 
     @Override

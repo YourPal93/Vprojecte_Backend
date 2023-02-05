@@ -2,7 +2,7 @@ package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.ChatRepository;
 import com.friend.your.vprojecte.dao.MessageRepository;
-import com.friend.your.vprojecte.dao.UserPlateJPARepository;
+import com.friend.your.vprojecte.dao.UserPlateRepository;
 import com.friend.your.vprojecte.dao.UserRepository;
 import com.friend.your.vprojecte.dto.ChatDto;
 import com.friend.your.vprojecte.entity.AppUser;
@@ -14,6 +14,8 @@ import com.friend.your.vprojecte.utility.PageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +30,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
-    private final UserPlateJPARepository userPlateRepository;
+    private final UserPlateRepository userPlateRepository;
     private final UserRepository userRepository;
 
     @Override
-    public Page<ChatDto> getUserChats(int pageNo, int pageSize, Integer userId) {
+    public Page<ChatDto> getUserChatLog(int pageNo, int pageSize, Integer userId) {
         log.info("Requesting chats of user with id {} page {} page size {}", userId, pageNo, pageSize);
 
         AppUser user = userRepository.findById(userId)
@@ -63,17 +65,17 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     @Override
-    public ChatDto createChat(AppUserPlate senderPlate, Integer receiverId) {
+    public ChatDto createChat(String userLogin, String receiverLogin) {
         // TODO: createChat - add support for group chats
 
-        log.info("Creating new chat between users {} and {}", senderPlate.getUserId(), receiverId);
+        log.info("Creating new chat between users {} and {}", userLogin, receiverLogin);
 
-        AppUserPlate receiverPlate = userPlateRepository.findById(receiverId)
-                        .orElseThrow(()-> new RuntimeException("User plate not found"));
-        AppUser sender = userRepository.findById(senderPlate.getUserId())
+        AppUser sender = userRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUser receiver = userRepository.findById(receiverId)
+        AppUser receiver = userRepository.findByLogin(receiverLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        AppUserPlate senderPlate = new AppUserPlate(sender.getId(), userLogin);
+        AppUserPlate receiverPlate = new AppUserPlate(receiver.getId(), receiverLogin);
 
         Chat newChat = new Chat();
 
@@ -81,10 +83,12 @@ public class MessagingServiceImpl implements MessagingService {
         newChat.getUsers().add(senderPlate);
         newChat.getUsers().add(receiverPlate);
 
+
         Chat savedChat = chatRepository.save(newChat);
 
         sender.getChatLog().add(savedChat);
         receiver.getChatLog().add(savedChat);
+
         userRepository.save(sender);
         userRepository.save(receiver);
 
@@ -97,49 +101,38 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     @Override
-    public ChatDto findChat(Integer chatId) {
-        log.info("Retrieving chat with id {}", chatId);
+    public Page<Message> getChatMessageLog(int pageNo, int pageSize, Integer chatId) {
+        log.info("Retrieving message log from chat {}", chatId);
 
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new RuntimeException("Chat log not found"));
-        ChatDto chatDto = new ChatDto();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        chatDto.setId(chatId);
-        chatDto.setReceiverPlate(chat.getUsers().get(0));
-
-        return chatDto;
+        return chatRepository.getMessageLog(chatId, pageable);
     }
 
     @Override
-    public Page<Message> getChatMessageLog(int pageNo, int pageSize, Integer idOfChat) {
-        log.info("Retrieving message log from chat {}", idOfChat);
+    public AppUserPlate sendMessage(Integer chatId, Message newMessage) {
+        log.info("Sending new message in chat {}", chatId);
 
-        Chat chat = chatRepository.findById(idOfChat).orElseThrow(() -> new RuntimeException("Chat log not found"));
-        Page<Message> messageLog = PageUtil.pageFromCollection(pageNo, pageSize, chat.getMessageLog());
+        newMessage.setChatId(chatId);
+        messageRepository.save(newMessage);
 
-        return messageLog;
+        AppUserPlate authorPlate = userPlateRepository.findById(newMessage.getAuthor())
+                .orElseThrow(() -> new RuntimeException("User plate not found"));
+
+        return authorPlate;
     }
 
     @Override
-    public Message sendMessage(Integer idOfChat, Message newMessage) {
-        log.info("Sending new message in chat {}", idOfChat);
+    public void deleteChat(Integer chatId) {
+        log.info("Deleting chat {}", chatId);
 
-        newMessage.setChatId(idOfChat);
-        Message message = messageRepository.save(newMessage);
-
-        return message;
+        chatRepository.deleteById(chatId);
     }
 
     @Override
-    public void deleteChat(Integer idOfChat) {
-        log.info("Deleting chat {}", idOfChat);
+    public void deleteMessage(Integer messageId) {
+        log.info("Deleting message with id {}", messageId);
 
-        chatRepository.deleteById(idOfChat);
-    }
-
-    @Override
-    public void deleteMessage(Integer idOfMessage) {
-        log.info("Deleting message with id {}", idOfMessage);
-
-        messageRepository.deleteById(idOfMessage);
+        messageRepository.deleteById(messageId);
     }
 }

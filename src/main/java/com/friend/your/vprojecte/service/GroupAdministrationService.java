@@ -5,24 +5,24 @@ import com.friend.your.vprojecte.entity.*;
 
 public interface GroupAdministrationService {
 
-    Group createGroup(String loginOfUser, Group group);
+    Group createGroup(String userLogin, Group group);
 
     public GroupDto updateGroup(GroupDto group);
 
-    void deleteGroup(Integer idOfGroup);
+    void deleteGroup(Integer groupId);
 
-    void setModerator(String nameOfGroup, Integer idOfMember);
+    void setModerator(Integer groupId, Integer memberId);
 
-    void deleteModerator(String nameOfGroup, Integer idOfMember);
+    void deleteModerator(Integer groupId, Integer memberId);
 
-    void setAdmin(String loginOfUser, String nameOfGroup, Integer idOfMember);
+    void setAdmin(String userLogin, Integer memberId, Integer groupId);
 
-    void deleteMember(Integer idOfGroup, Integer idOfMember);
+    void deleteMember(Integer userId, Integer groupId);
 
-    AppUserPlate approveMembershipRequest(AddRequest request);
+    void approveMembershipRequest(AddRequest request);
 
     void denyMembershipRequest(AddRequest request);
 
-    void deletePost(Integer idOfPost);
+    void deletePost(Integer postId);
 
 }

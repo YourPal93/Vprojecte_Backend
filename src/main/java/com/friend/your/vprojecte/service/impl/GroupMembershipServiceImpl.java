@@ -1,14 +1,16 @@
 package com.friend.your.vprojecte.service.impl;
 
 import com.friend.your.vprojecte.dao.*;
+import com.friend.your.vprojecte.dto.GroupDto;
 import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.GroupMembershipService;
 import com.friend.your.vprojecte.service.RoleService;
-import com.friend.your.vprojecte.utility.Groups;
+import com.friend.your.vprojecte.utility.GroupUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,79 +24,78 @@ import java.time.LocalDateTime;
 @Service
 public class GroupMembershipServiceImpl implements GroupMembershipService {
 
-    private final GroupJPARepository groupRepository;
-    private final UserPlateJPARepository userPlateRepository;
+    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
-    private final AddRequestJPARepository requestRepository;
-    private final RoleService roleService;
     private final PostRepository postRepository;
+    private final RoleService roleService;
 
 
     @Override
-    public Page<Group> findAll(int pageNo, int pageSize) {
+    public Page<GroupDto> findAll(int pageNo, int pageSize) {
         log.info("Requesting groups page {} size of page {}", pageNo, pageSize);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return groupRepository.findAll(pageable);
+        return groupRepository.findAllGroupDto(pageable);
     }
 
     @Override
-    public Group findGroup(Integer idOfGroup) {
-        log.info("Requesting group with id {}", idOfGroup);
-
-        Group group = groupRepository.findById(idOfGroup).orElseThrow(() -> new RuntimeException("Group not found"));
-
-        return group;
-    }
-
-
-    @Override
-    public Page<Group> findByNameMatch(int pageNo, int pageSize, String name) {
-        log.info("Requesting matching groups with name {} page {} page size {}", name, pageNo, pageSize);
+    public Page<GroupDto> findUserGroups(int pageNo, int pageSize, String userLogin) {
+        log.info("Requesting groups of user with login {} page no {} page size {}", userLogin, pageNo, pageSize);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return groupRepository.findByNameContaining(name, pageable);
+        return userRepository.findUserGroups(userLogin, pageable);
+    }
+
+
+    @Override
+    public Page<GroupDto> findByNameMatch(int pageNo, int pageSize, String name) {
+        log.info("Requesting matching groups with name {} page {} page size {}", name, pageNo, pageSize);;
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        return groupRepository.findAllContainingGroupDto(name, pageable);
     }
 
     @Override
-    public AppUserPlate addMember(Integer idOfGroup, String loginOfUser) {
-        log.info("Adding user user with login {} as member to the group with id {}", loginOfUser, idOfGroup);
+    public Role joinGroup(Integer groupId, String userLogin) {
+        log.info("Adding user with login {} as member to the group with id {}", userLogin, groupId);
 
-        Group group = groupRepository.findById(idOfGroup)
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
-        AppUser user = userRepository.findByLogin(loginOfUser)
+        AppUser user = userRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUserPlate userPlateToAdd = userPlateRepository.findByLogin(loginOfUser)
-                .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Role newMemberRole = Groups.getMemberRole(group.getName(), userPlateToAdd.getUserId());
+        Role newGroupRole = GroupUtil.getMemberRole(groupId);
 
-        group.getMembers().add(userPlateToAdd);
-
-        roleService.addGroupRoleToUser(user,newMemberRole);
+        group.getMembers().add(new AppUserPlate(user.getId(), user.getLogin()));
         groupRepository.save(group);
 
-        return userPlateToAdd;
+        roleService.addRoleToUser(user.getId(), newGroupRole);
+
+        user.getGroups().add(group);
+        user.getRoles().add(newGroupRole);
+        userRepository.save(user);
+
+        return newGroupRole;
     }
 
     @Override
-    public Page<AppUser> findMember(int pageNo, int PageSize, String loginOfMember) {
-        return null;
-    }
-
-    @Override
-    public AddRequest sendMembershipRequest(AddRequest request) {
+    public void sendMembershipRequest(AddRequest request) {
         log.info("Sending membership request with id {}", request.getId());
 
-        return requestRepository.save(request);
+        Group group = groupRepository.findById(request.getReceiverId())
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        group.getJoinRequests().add(request);
+        groupRepository.save(group);
     }
 
     @Override
-    public PostDto makePost(Integer idOfGroup, Post post) {
-        log.info("Creating group post with id {} for the group with id {}", post.getId(), idOfGroup);
+    public PostDto makePost(Integer groupId, Post post) {
+        log.info("Creating group post for the group with id {}", groupId);
 
-        Group group = groupRepository.findById(idOfGroup)
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         PostDto postDto = new PostDto();
 
@@ -103,16 +104,16 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
         post.setType(1);
         post.setCreationDate(currentDateTime);
 
-        Post savedPost = postRepository.save(post);
+        postRepository.save(post);
 
         group.getPosts().add(post);
         groupRepository.save(group);
 
-        postDto.setId(savedPost.getId());
-        postDto.setUserLogin(savedPost.getUserLogin());
-        postDto.setDescription(savedPost.getDescription());
-        postDto.setUrl(savedPost.getUrl());
-        postDto.setCreationDate(savedPost.getCreationDate());
+        postDto.setId(post.getId());
+        postDto.setUserLogin(post.getUserLogin());
+        postDto.setDescription(post.getDescription());
+        postDto.setUrl(post.getUrl());
+        postDto.setCreationDate(post.getCreationDate());
 
         return postDto;
     }

@@ -5,14 +5,13 @@ import com.friend.your.vprojecte.dto.GroupDto;
 import com.friend.your.vprojecte.entity.*;
 import com.friend.your.vprojecte.service.GroupAdministrationService;
 import com.friend.your.vprojecte.service.RoleService;
-import com.friend.your.vprojecte.utility.Groups;
+import com.friend.your.vprojecte.utility.GroupUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,30 +20,31 @@ import java.util.Set;
 public class GroupAdministrationServiceImpl implements GroupAdministrationService {
 
     private final UserRepository userRepository;
-    private final GroupJPARepository groupRepository;
-    private final UserPlateJPARepository userPlateRepository;
+    private final GroupRepository groupRepository;
+    private final UserPlateRepository userPlateRepository;
     private final RoleService roleService;
-    private final AddRequestJPARepository requestRepository;
+    private final AddRequestRepository requestRepository;
     private final PostRepository postRepository;
 
     @Override
-    public Group createGroup(String loginOfUser, Group group) {
-        log.info("Creating group with name {} by user with login {}", group.getName(), loginOfUser);
+    public Group createGroup(String userLogin, Group group) {
+        log.info("Creating group with name {} by user with login {}", group.getName(), userLogin);
 
-        AppUser groupAdmin = userRepository.findByLogin(loginOfUser)
+        AppUser user = userRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUserPlate adminUserPlate = userPlateRepository.findByLogin(loginOfUser)
-                .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Set<Role> groupRoles = groupAdmin.getGroupRoles();
 
-        groupRoles.add(Groups.getMemberRole(group.getName(), groupAdmin.getId()));
-        groupRoles.add(Groups.getModeratorRole(group.getName(), groupAdmin.getId()));
-        groupRoles.add(Groups.getAdminRole(group.getName(), groupAdmin.getId()));
         group.setMembers(new HashSet<>());
-        group.getMembers().add(adminUserPlate);
+        group.getMembers().add(new AppUserPlate(user.getId(), user.getLogin()));
 
-        userRepository.save(groupAdmin);
-        return groupRepository.save(group);
+        groupRepository.save(group);
+
+        Role newAdminRole = GroupUtil.getAdminRole(group.getId());
+
+        user.getRoles().add(newAdminRole);
+        user.getGroups().add(group);
+        userRepository.save(user);
+
+        return group;
     }
 
     @Override
@@ -63,86 +63,127 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
     }
 
     @Override
-    public void deleteGroup(Integer idOfGroup) {
-        log.info("Deleting group with id {}", idOfGroup);
+    public void deleteGroup(Integer groupId) {
+        log.info("Deleting group with id {}", groupId);
 
-        Group groupToDelete = groupRepository.findById(idOfGroup)
+        Group groupToDelete = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        roleService.deleteRoleAll("ROLE_" + groupToDelete.getName().toUpperCase() + "_ADMIN");
-        roleService.deleteRoleAll("ROLE_" + groupToDelete.getName().toUpperCase() + "_MODERATOR");
-        roleService.deleteRoleAll("ROLE_" + groupToDelete.getName().toUpperCase() + "_MEMBER");
+        String adminRole = GroupUtil.getRoleName(groupId, "ADMIN");
+        String moderatorRole = GroupUtil.getRoleName(groupId, "MODERATOR");
+        String memberRole = GroupUtil.getRoleName(groupId, "MEMBER");
 
-        groupRepository.delete(groupToDelete);
+        roleService.deleteAllRolesFromGroup(adminRole);
+        roleService.deleteAllRolesFromGroup(moderatorRole);
+        roleService.deleteAllRolesFromGroup(memberRole);
+
+        groupRepository.deleteById(groupId);
     }
 
     @Override
-    public void setModerator(String nameOfGroup, Integer idOfMember) {
-        log.info("Setting user with id {} as moderator for the group with name {}", idOfMember, nameOfGroup);
+    public void setModerator(Integer groupId, Integer memberId) {
+        log.info("Setting user with id {} as moderator for the group with id {}", memberId, groupId);
 
-        AppUser member = userRepository.findById(idOfMember)
+        AppUser member = userRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        Role moderatorRole = GroupUtil.getModeratorRole(groupId);
+        Role memberRole = GroupUtil.getMemberRole(groupId);
 
-        roleService.addGroupRoleToUser(member, Groups.getModeratorRole(nameOfGroup, member.getId()));
+        if(roleService.exists(memberRole.getName(), member.getId())) {
+            Role existingMemberRole = roleService.getUserRole(memberId, memberRole.getName());
+            member.getRoles().remove(existingMemberRole);
+        }
+
+        member.getRoles().add(moderatorRole);
+        userRepository.save(member);
     }
 
     @Override
-    public void deleteModerator(String nameOfGroup, Integer idOfMember) {
-        log.info("Deleting moderator with id {} for the group with name {}", idOfMember, nameOfGroup);
+    public void deleteModerator(Integer groupId, Integer memberId) {
+        log.info("Deleting moderator with id {} for the group with id {}", memberId, groupId);
 
-        AppUser member = userRepository.findById(idOfMember)
+        String moderatorRoleName = GroupUtil.getRoleName(groupId, "MODERATOR");
+
+        AppUser member = userRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        Role existingModeratorRole = roleService.getUserRole(memberId, moderatorRoleName);
 
-        roleService.deleteRole(Groups.getModeratorRole(nameOfGroup, member.getId()));
+        member.getRoles().remove(existingModeratorRole);
+        member.getRoles().add(GroupUtil.getMemberRole(groupId));
+        userRepository.save(member);
     }
 
     @Override
-    public void setAdmin(String loginOfUser, String nameOfGroup, Integer idOfMember) {
-        log.info("Setting user with login {} as admin for the group with name {}", loginOfUser, nameOfGroup);
+    public void setAdmin(String userLogin, Integer memberId, Integer groupId) {
+        log.info("Setting user with id {} as admin for the group with id {}", memberId, groupId);
 
-        AppUser newAdmin = userRepository.findById(idOfMember)
+        AppUser newAdmin = userRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUser groupAdmin = userRepository.findByLogin(loginOfUser)
+        AppUser formerAdmin = userRepository.findByLogin(userLogin)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        roleService.deleteRole(Groups.getAdminRole(nameOfGroup, groupAdmin.getId()));
-        roleService.addGroupRoleToUser(newAdmin, (Groups.getAdminRole(nameOfGroup, newAdmin.getId())));
+        Role memberRole = GroupUtil.getMemberRole(groupId);
+        Role moderatorRole = GroupUtil.getModeratorRole(groupId);
+        Role adminRole = GroupUtil.getAdminRole(groupId);
+
+        if(roleService.exists(memberRole.getName(), newAdmin.getId())) {
+            roleService.deleteRoleFromUser(memberRole.getName(), newAdmin.getId());
+        }
+
+        if(roleService.exists(moderatorRole.getName(), newAdmin.getId())) {
+            roleService.deleteRoleFromUser(moderatorRole.getName(), newAdmin.getId());
+        }
+
+        roleService.deleteRoleFromUser(adminRole.getName(), formerAdmin.getId());
+        roleService.addRoleToUser(formerAdmin.getId(), moderatorRole);
+        roleService.addRoleToUser(newAdmin.getId(), adminRole);
     }
 
     @Override
-    public void deleteMember(Integer idOfGroup, Integer idOfMember) {
-        log.info("Deleting user with id {} from the group with id {}", idOfMember, idOfGroup);
+    public void deleteMember(Integer memberId, Integer groupId) {
+        log.info("Deleting user with id {} from the group with id {}", memberId, groupId);
 
-        Group group = groupRepository.findById(idOfGroup)
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
-        AppUserPlate userPlateToDelete = userPlateRepository.findById(idOfMember)
-                .orElseThrow(() -> new RuntimeException("User plate not found"));
+        AppUser member = userRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        group.getMembers().remove(userPlateToDelete);
-
-        roleService.deleteRole(Groups.getMemberRole(group.getName(), idOfMember));
+        group.getMembers().remove(new AppUserPlate(memberId, member.getLogin()));
         groupRepository.save(group);
+
+        String memberRoleName = GroupUtil.getRoleName(groupId, "MEMBER");
+        String moderatorRoleName = GroupUtil.getRoleName(groupId, "MODERATOR");
+
+        if(roleService.exists(moderatorRoleName, member.getId())) {
+            Role existingModeratorRole = roleService.getUserRole(memberId, moderatorRoleName);
+
+            member.getRoles().remove(existingModeratorRole);
+            userRepository.save(member);
+            return;
+        }
+
+        Role existingMemberRole = roleService.getUserRole(memberId, moderatorRoleName);
+        member.getRoles().remove(existingMemberRole);
+        userRepository.save(member);
     }
 
     @Override
-    public AppUserPlate approveMembershipRequest(AddRequest request) {
+    public void approveMembershipRequest(AddRequest request) {
         log.info("Approving membership request with id {}", request.getId());
 
         Group group = groupRepository.findById(request.getReceiverId())
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         AppUser user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        AppUserPlate userPlateToAdd = userPlateRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User plate not found"));
-        Role newMemberRole = Groups.getMemberRole(group.getName(), userPlateToAdd.getUserId());
 
-        group.getMembers().add(userPlateToAdd);
+        Role memberRole = GroupUtil.getMemberRole(group.getId());
 
-        roleService.addGroupRoleToUser(user, newMemberRole);
+        user.getRoles().add(memberRole);
+        group.getMembers().add(new AppUserPlate(user.getId(), user.getLogin()));
+
+        userRepository.save(user);
         groupRepository.save(group);
         requestRepository.deleteById(request.getId());
-
-        return userPlateToAdd;
     }
 
     @Override
@@ -154,9 +195,9 @@ public class GroupAdministrationServiceImpl implements GroupAdministrationServic
 
 
     @Override
-    public void deletePost(Integer idOfPost) {
-        log.info("Deleting group post with id {}", idOfPost);
+    public void deletePost(Integer postId) {
+        log.info("Deleting group post with id {}", postId);
 
-        postRepository.deleteById(idOfPost);
+        postRepository.deleteById(postId);
     }
 }

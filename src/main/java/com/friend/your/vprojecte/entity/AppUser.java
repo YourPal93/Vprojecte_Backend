@@ -43,18 +43,25 @@ public class AppUser {
     @Column(name="birthdate")
     private LocalDate birthdate;
 
-    @OneToMany(
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @JoinColumn(name = "user_id")
-    private Set<Friend> friendList;
-
     @ManyToMany(
             fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH,
+                    CascadeType.MERGE
+            }
+    )
+    @JoinTable(
+            name = "users_user_plates",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_plate_id")
+    )
+    private Set<AppUserPlate> friendList;
+
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
                     CascadeType.DETACH,
                     CascadeType.REFRESH,
                     CascadeType.MERGE
@@ -79,28 +86,27 @@ public class AppUser {
     )
     private List<Post> posts;
 
-    @OneToMany(
-            fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH,
+            }
     )
     @JoinTable(
-            name = "users_roles",
+            name = "users_groups",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
+            inverseJoinColumns = @JoinColumn(name = "group_id")
     )
-    private Set<Role> roles;
+    private Set<Group> groups;
+
     @OneToMany(
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @JoinTable(
-            name = "users_groups_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> groupRoles;
+    @JoinColumn(name = "user_id")
+    private Set<Role> roles;
 
     public AppUser(
             String name,

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/group/administration")
+@RequestMapping("/groups/administration")
 public class GroupAdministrationController {
 
     private final GroupAdministrationService adminService;
@@ -32,61 +32,64 @@ public class GroupAdministrationController {
         return new ResponseEntity<>(adminService.updateGroup(group), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{idOfGroup}")
-    public ResponseEntity<String> deleteGroup(@PathVariable Integer idOfGroup) {
-        adminService.deleteGroup(idOfGroup);
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<String> deleteGroup(@PathVariable Integer groupId) {
+        adminService.deleteGroup(groupId);
 
         return new ResponseEntity<>("Group was successfully deleted", HttpStatus.OK);
     }
 
-    @PostMapping("/moderation/{nameOfGroup}/{idOfMember}")
-    public ResponseEntity<String> setModerator(@PathVariable String nameOfGroup, @PathVariable Integer idOfMember) {
-        adminService.setModerator(nameOfGroup, idOfMember);
+    @PutMapping("/{groupId}/moderation/{memberId}")
+    public ResponseEntity<String> setModerator(@PathVariable Integer groupId, @PathVariable Integer memberId) {
+        adminService.setModerator(groupId, memberId);
 
-        return new ResponseEntity<>("Moderator was successfully added", HttpStatus.CREATED);
+        return new ResponseEntity<>("Moderator was successfully added", HttpStatus.OK);
     }
 
-    @DeleteMapping("/moderation/{nameOfGroup}/{idOfMember}")
-    public ResponseEntity<String> deleteModerator(@PathVariable String nameOfGroup, @PathVariable Integer idOfMember) {
+    @DeleteMapping("/{groupId}/moderation/{memberId}")
+    public ResponseEntity<String> deleteModerator(@PathVariable Integer groupId, @PathVariable Integer memberId) {
 
-        adminService.deleteModerator(nameOfGroup, idOfMember);
+        adminService.deleteModerator(groupId, memberId);
 
         return new ResponseEntity<>("Moderator was deleted successfully", HttpStatus.OK);
     }
 
-    @PostMapping("/{nameOfGroup}/{idOfMember}")
-    public ResponseEntity<String> setAdmin(@PathVariable String nameOfGroup, @PathVariable Integer idOfMember) {
+    @PutMapping("/{groupId}/{memberId}")
+    public ResponseEntity<String> setAdmin(@PathVariable Integer groupId, @PathVariable Integer memberId) {
 
         String adminLogin = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        adminService.setAdmin(adminLogin, nameOfGroup, idOfMember);
+        adminService.setAdmin(adminLogin, memberId, groupId);
 
-        return new ResponseEntity<>("Admin was set successfully", HttpStatus.CREATED);
+        return new ResponseEntity<>("Admin was set successfully", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{idOfGroup}/{idOfMember}")
-    public ResponseEntity<String> deleteMember(@PathVariable Integer idOfGroup, @PathVariable Integer idOfMember) {
-        adminService.deleteMember(idOfGroup, idOfMember);
+    @DeleteMapping("/{groupId}/members/{memberId}")
+    public ResponseEntity<String> deleteMember(@PathVariable Integer groupId, @PathVariable Integer memberId) {
+
+        adminService.deleteMember(memberId, groupId);
 
         return new ResponseEntity<>("Member was deleted successfully", HttpStatus.OK);
     }
 
-    @PutMapping("/request")
-    public ResponseEntity<AppUserPlate> approveMembershipRequest(@RequestBody AddRequest request) {
+    @PutMapping("/requests")
+    public ResponseEntity<String> approveMembershipRequest(@RequestBody AddRequest request) {
 
-        return new ResponseEntity<>(adminService.approveMembershipRequest(request), HttpStatus.OK);
+        adminService.approveMembershipRequest(request);
+
+        return new ResponseEntity<>("Membership request has been approved", HttpStatus.OK);
     }
 
-    @DeleteMapping("/request")
+    @DeleteMapping("/requests")
     public ResponseEntity<String> denyMembershipRequest(@RequestBody AddRequest request) {
         adminService.denyMembershipRequest(request);
 
         return new ResponseEntity<>("Request has been denied", HttpStatus.OK);
     }
 
-    @DeleteMapping("/feed/{idOfPost}")
-    public ResponseEntity<String> deleteGroupPost(@PathVariable Integer idOfPost) {
-        adminService.deletePost(idOfPost);
+    @DeleteMapping("/feed/{postId}")
+    public ResponseEntity<String> deleteGroupPost(@PathVariable Integer postId) {
+        adminService.deletePost(postId);
 
         return new ResponseEntity<>("Post has been deleted", HttpStatus.OK);
     }

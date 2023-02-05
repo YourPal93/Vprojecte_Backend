@@ -1,9 +1,9 @@
 package com.friend.your.vprojecte.service.impl;
 
 
-import com.friend.your.vprojecte.dao.UserPlateJPARepository;
+import com.friend.your.vprojecte.dao.PostRepository;
+import com.friend.your.vprojecte.dao.UserPlateRepository;
 import com.friend.your.vprojecte.dao.UserRepository;
-import com.friend.your.vprojecte.dto.AppUserCredentialsDto;
 import com.friend.your.vprojecte.dto.AppUserDto;
 import com.friend.your.vprojecte.dto.PostDto;
 import com.friend.your.vprojecte.entity.*;
@@ -31,12 +31,12 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final UserPlateJPARepository userPlateRepository;
-    private final RoleService roleService;
+    private final UserPlateRepository userPlateRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PostRepository postRepository;
 
     @Override
-    public Page<AppUserPlate> findAll(int pageNo, int pageSize) {
+    public Page<AppUserPlate> findAllUsers(int pageNo, int pageSize) {
         log.info("Requesting user plates page {} with size {} from the database", pageNo, pageSize);
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -48,14 +48,23 @@ public class UserServiceImpl implements UserService {
     public AppUserPlate findUserPlate(String login) {
         log.info("Requesting user plate of user with login {}", login);
 
-        AppUserPlate userPlate = userPlateRepository.findByLogin(login)
+        AppUserPlate userPlate = userPlateRepository.findByUserLogin(login)
                 .orElseThrow(() -> new RuntimeException("User plate not found"));
 
         return userPlate;
     }
 
     @Override
-    public AppUserDto findById(Integer id) {
+    public boolean userExists(String userLogin, String userEmail) {
+        log.info("Checking if user with login {} and email {} exists in the database", userEmail, userEmail);
+
+        if(userRepository.existsByLogin(userLogin)) return true;
+
+        return userRepository.existsByEmail(userEmail);
+    }
+
+    @Override
+    public AppUserDto findUser(Integer id) {
         log.info("Requesting user with id: {}", id);
 
         AppUser user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
@@ -72,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AppUserDto findByLogin(String login) {
+    public AppUserDto findUser(String login) {
         log.info("Requesting user with login: {}", login);
 
         AppUser user = userRepository.findByLogin(login).orElseThrow(() -> new RuntimeException("User not found"));
@@ -93,16 +102,11 @@ public class UserServiceImpl implements UserService {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        return userPlateRepository.findByLoginContaining(login, pageable);
+        return userPlateRepository.findByUserLoginContaining(login, pageable);
     }
 
     @Override
-    public Boolean exist(String login) {
-        return userRepository.existsByLogin(login);
-    }
-
-    @Override
-    public AppUserDto save(AppUserDto userDto) {
+    public AppUserDto saveUser(AppUserDto userDto) {
         log.info("Saving user '{}' to the database ", userDto.getLogin());
 
         AppUser user = new AppUser(
@@ -113,20 +117,18 @@ public class UserServiceImpl implements UserService {
                 userDto.getBirthdate());
 
         user.setRoles(new HashSet<>());
+        user.getRoles().add(new Role("ROLE_USER"));
 
         AppUser savedUser = userRepository.save(user);
-        AppUserPlate savedUserPlate = new AppUserPlate(savedUser.getId(), savedUser.getLogin());
 
-        roleService.addRoleToUser(user, new Role("ROLE_USER", savedUser.getId()));
-        userPlateRepository.save(savedUserPlate);
-
+        userPlateRepository.save(new AppUserPlate(savedUser.getId(), savedUser.getLogin()));
         userDto.setId(savedUser.getId());
-
+        userDto.setPassword("");
         return userDto;
     }
 
     @Override
-    public AppUserDto update(String userLogin, AppUserDto userDto) {
+    public AppUserDto updateUser(String userLogin, AppUserDto userDto) {
         log.info("Updating user with login {}", userLogin);
 
         AppUser user = userRepository.findByLogin(userLogin)
@@ -135,6 +137,7 @@ public class UserServiceImpl implements UserService {
         if(userDto.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
             userRepository.save(user);
+            userDto.setId(user.getId());
             userDto.setPassword(null);
             return userDto;
         }
@@ -152,59 +155,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Integer id) {
+    public void deleteUser(Integer id) {
         log.info("Deleting user with id: {}", id);
 
-        AppUser user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.deleteById(id);
-        userPlateRepository.deleteById(user.getId());
-    }
-
-    @Override
-    public Page<Chat> getChatLogs(int pageNo, int pageSize, String loginOfUser) {
-        log.info("Requesting chat logs of user {}", loginOfUser);
-
-        AppUser user = userRepository.findByLogin(loginOfUser)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Page<Chat> pageOfChatLogs = PageUtil.pageFromList(pageNo, pageSize, user.getChatLog());
-
-        return pageOfChatLogs;
+        userPlateRepository.deleteById(id);
     }
 
     @Override
     public Page<PostDto> getUserWall(int pageNo, int pageSize, Integer userId) {
         log.info("requesting user wall of user with id {} page {} page size {}", userId, pageNo, pageSize);
 
-        AppUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        List<Post> posts = user.getPosts();
-        List<PostDto> userWallDtos = new ArrayList<>();
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-        int start = pageNo * pageSize;
-        int end = start + pageSize;
-        if(end > posts.size()) {
-            end = posts.size();
-        }
-
-        for(Post post : posts.subList(start, end)) {
-
-            PostDto postDto = new PostDto();
-            postDto.setId(post.getId());
-            postDto.setUserLogin(postDto.getUserLogin());
-            postDto.setDescription(post.getDescription());
-            postDto.setUrl(post.getUrl());
-            postDto.setCreationDate(post.getCreationDate());
-            userWallDtos.add(postDto);
-        }
-
-        Page<PostDto> userWall = PageUtil.listToPage(pageNo, pageSize, userWallDtos, posts.size());
-
-        return userWall;
+        return userRepository.getUserPosts(userId, pageable);
     }
 
     @Override
     public PostDto addPostToUser(Post post, Integer userId) {
-        log.info("String adding post to user with id {}", userId);
+        log.info("Adding post from user with login {} to user with id {}", post.getUserLogin(),  userId);
 
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -214,6 +183,7 @@ public class UserServiceImpl implements UserService {
         post.setCreationDate(currentDateTime);
         user.getPosts().add(post);
 
+        postRepository.save(post);
         userRepository.save(user);
 
         PostDto postDto = new PostDto();

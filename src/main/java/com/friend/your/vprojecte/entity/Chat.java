@@ -29,10 +29,7 @@ public class Chat {
     @ManyToMany(
             fetch = FetchType.LAZY,
             cascade = {
-                    CascadeType.PERSIST,
-                    CascadeType.DETACH,
-                    CascadeType.REFRESH,
-                    CascadeType.MERGE
+                    CascadeType.DETACH
             }
     )
     @JoinTable(
