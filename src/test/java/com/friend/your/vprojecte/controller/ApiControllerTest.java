@@ -53,14 +53,14 @@ class ApiControllerTest {
 
 
     @Test
-    void register_GivenValidUserDto_ShouldReturnCreated() throws Exception {
+    void register_GivenValidUserDto_ShouldReturnFound() throws Exception {
         AppUserDto testUserDto = TestUserDtoUtil.getTestUserDtoNoId();
 
         ResultActions response = mockMvc.perform(post("/api/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)));
 
-        response.andExpect(status().isCreated())
+        response.andExpect(status().isFound())
                 .andExpect(content().string(containsString("Registration successful")));
 
 
