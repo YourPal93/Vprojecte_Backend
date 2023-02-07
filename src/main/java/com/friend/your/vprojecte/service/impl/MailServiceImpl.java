@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -14,6 +15,7 @@ import javax.mail.internet.MimeMessage;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@EnableAsync
 public class MailServiceImpl {
 
     private final JavaMailSender mailSender;

@@ -39,9 +39,9 @@ public class ApiController {
         if(userService.userExists(userDto.getLogin(), userDto.getEmail())) {
             return new ResponseEntity<>("User with the same login or email already exists", HttpStatus.BAD_REQUEST);
         }
-//        if(registrationService.tokenTaken(userDto.getLogin(), userDto.getEmail())) {
-//            return new ResponseEntity<>("User with the same login or email already exists", HttpStatus.BAD_REQUEST);
-//        }
+        if(registrationService.tokenTaken(userDto.getLogin(), userDto.getEmail())) {
+            return new ResponseEntity<>("User with the same login or email already exists", HttpStatus.BAD_REQUEST);
+        }
 
         registrationService.register(userDto);
 
