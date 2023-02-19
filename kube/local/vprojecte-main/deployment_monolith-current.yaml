@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprojecte-main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vprojecte-main
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: vprojecte-main
+    spec:
+      containers:
+        - image: ghcr.io/yourpal93/vprojecte-main:latest
+          name: vprojecte-main
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: vprojecte-config
+      imagePullSecrets:
+        - name: ghcr-login-secret

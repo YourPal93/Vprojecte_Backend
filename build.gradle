@@ -1,0 +1,42 @@
+plugins {
+	id 'idea'
+	id 'org.springframework.boot' version '3.0.2'
+	id 'io.spring.dependency-management' version '1.1.0'
+	id 'com.google.cloud.tools.jib' version '3.1.4' apply false
+}
+
+idea {
+	project {
+		languageLevel = 17
+	}
+	module {
+		downloadJavadoc = true
+		downloadSources = true
+	}
+}
+
+allprojects {
+	group "com.friend.your"
+
+	repositories {
+		mavenCentral()
+	}
+
+	apply plugin: "io.spring.dependency-management"
+	dependencyManagement {
+		dependencies {
+			imports {
+				mavenBom("org.springframework.boot:spring-boot-dependencies:3.0.2")
+			}
+			dependency "io.projectreactor:reactor-test:${Versions.reactorTest}"
+			dependency "org.testcontainers:junit-jupiter:${Versions.testcontainers}"
+			dependency "org.testcontainers:kafka:${Versions.testcontainers}"
+		}
+	}
+
+	configurations.all {
+		resolutionStrategy {
+			failOnVersionConflict()
+		}
+	}
+}

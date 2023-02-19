@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/vprojecte_test
+    username: letmein
+    password: letmein
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+jwt:
+  secret: lasdjflsakjdf;laksjdfls&*%@kdjaf@@TemporaryKeyForJwtasd235kjf;l%$@askjdfl;sakjdf
