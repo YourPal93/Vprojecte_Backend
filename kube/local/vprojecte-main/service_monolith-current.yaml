@@ -4,9 +4,9 @@ kind: Service
 metadata:
   name: vprojecte-main
 spec:
+  selector:
+    key: vprojecte-main
   ports:
     - port: 80
-      targetPort: 8080
-  selector:
-    app: vprojecte-main
-  type: ClusterIP
+      targetPort: 8081
+

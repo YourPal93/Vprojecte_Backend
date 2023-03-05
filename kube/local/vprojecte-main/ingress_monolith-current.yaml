@@ -2,12 +2,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: vprojecte-main
+  name: vprojecte-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
+    - host: vprojecte.local
     - http:
         paths:
-          - path: /
+          - path: /(/|$)(.*)
             pathType: Prefix
             backend:
               service:

@@ -6,8 +6,13 @@ plugins {
 
 apply from: 'jib.gradle'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+group = 'com.friend.your.vprojecte'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
@@ -18,8 +23,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'ch.qos.logback:logback-classic'
-    implementation 'mysql:mysql-connector-java'
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+    implementation 'mysql:mysql-connector-java:8.0.31'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2',
             'io.jsonwebtoken:jjwt-jackson:0.11.2',
             'org.apache.commons:commons-lang3:3.0'

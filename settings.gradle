@@ -1,2 +1,6 @@
 rootProject.name = 'vprojecte'
 include 'monolith-current'
+include 'vprojecte-api-server'
+include 'vprojecte-config-server'
+include 'vprojecte-cloud-server'
+

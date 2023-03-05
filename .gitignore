@@ -44,6 +44,7 @@ build
 out
 
 ### Custom ignores ###
+docker-compose.yaml
 **/*Proba.java
 
 logs/spring-boot-logger.log

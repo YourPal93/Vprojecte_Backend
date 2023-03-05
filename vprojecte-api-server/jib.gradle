@@ -1,0 +1,13 @@
+jib {
+    container.creationTime = 'USE_CURRENT_TIMESTAMP'
+    from {
+        image = 'bellsoft/liberica-openjdk-alpine-musl:17.0.6'
+    }
+    to {
+        image = 'ghcr.io/yourpal93/vprojecte-api-server:latest'
+        auth {
+            username = "${GitCred.username}"
+            password = "${GitCred.token}"
+        }
+    }
+}
