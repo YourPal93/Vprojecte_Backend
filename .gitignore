@@ -46,6 +46,8 @@ out
 ### Custom ignores ###
 docker-compose.yaml
 **/*Proba.java
+proba/
+application-secret.yml
 
 logs/spring-boot-logger.log
 *.log

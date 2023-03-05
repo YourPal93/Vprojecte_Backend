@@ -8,9 +8,10 @@ spring:
     config:
       server:
         git:
-          uri:
-          clone-on-start:
-          basedir:
-          username:
-          password:
+          uri: https://github.com/YourPal93/vprojecte-config-repo.git
+          clone-on-start: true
+          basedir: file://c:/tools/vprojecte-git-c
           default-label: main
+  profiles:
+    active:
+      - secret

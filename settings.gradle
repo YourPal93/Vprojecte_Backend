@@ -3,5 +3,5 @@ include 'monolith-current'
 include 'vprojecte-api-server'
 include 'vprojecte-config-server'
 include 'vprojecte-cloud-server'
-include 'config'
+include 'vprojecte-cloud-server'
 

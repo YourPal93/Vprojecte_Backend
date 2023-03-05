@@ -33,10 +33,4 @@ allprojects {
 			dependency "org.testcontainers:kafka:${Versions.testcontainers}"
 		}
 	}
-
-	configurations.all {
-		resolutionStrategy {
-			failOnVersionConflict()
-		}
-	}
 }
