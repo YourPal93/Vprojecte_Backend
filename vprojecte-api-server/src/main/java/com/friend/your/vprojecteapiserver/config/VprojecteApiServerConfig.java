@@ -21,9 +21,7 @@ public class VprojecteApiServerConfig {
         jwtAuthConverter.setJwtGrantedAuthoritiesConverter(new KCRoleConverter());
 
         http.authorizeHttpRequests()
-                .requestMatchers(POST, "/api/register").permitAll()
-                .requestMatchers(POST, "/api/login").permitAll()
-                .requestMatchers("vasya").hasRole("user")
+                .requestMatchers("/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .csrf().disable()

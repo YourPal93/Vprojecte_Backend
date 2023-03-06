@@ -1,0 +1,8 @@
+server:
+  port: 8765
+
+spring:
+  application:
+    name: vprojecte-gateway-main
+  config:
+    import: configserver:http://localhost:8888
