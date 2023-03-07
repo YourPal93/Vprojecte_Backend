@@ -10,7 +10,7 @@ spring:
         git:
           uri: https://github.com/YourPal93/vprojecte-config-repo.git
           clone-on-start: true
-          basedir: config-properties
+          basedir: config-properties-repo
           default-label: main
   profiles:
     active:

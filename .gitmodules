@@ -1,0 +1,3 @@
+[submodule "config-properties-repo"]
+	path = config-properties-repo
+	url = https://github.com/YourPal93/vprojecte-config-repo.git
