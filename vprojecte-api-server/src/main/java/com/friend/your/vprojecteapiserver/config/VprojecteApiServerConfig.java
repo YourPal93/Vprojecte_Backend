@@ -1,14 +1,12 @@
 package com.friend.your.vprojecteapiserver.config;
 
-import com.friend.your.vprojecteapiserver.utils.KCRoleConverter;
+import com.friend.your.vprojecte.vprojecteutils.keycloak.KCRoleConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
 @EnableWebSecurity
@@ -21,10 +19,10 @@ public class VprojecteApiServerConfig {
         jwtAuthConverter.setJwtGrantedAuthoritiesConverter(new KCRoleConverter());
 
         http.authorizeHttpRequests()
-                .requestMatchers("/**").permitAll()
+                .requestMatchers("/actuator/*").permitAll()
+                .requestMatchers("/api/*").hasRole("user")
                 .anyRequest().authenticated()
                 .and()
-                .csrf().disable()
                 .oauth2ResourceServer()
                 .jwt()
                 .jwtAuthenticationConverter(jwtAuthConverter);

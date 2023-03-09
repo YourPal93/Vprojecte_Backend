@@ -7,13 +7,8 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: update
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/vprojecte-main-realm
-          jwk-set-uri: http://localhost:8080/realms/vprojecte-main-realm/protocol/openid-connect/certs
   profiles:
     active:
       - mysql-account-data
       - microservice
+      - kc

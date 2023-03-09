@@ -5,6 +5,9 @@ plugins {
 	id 'com.google.cloud.tools.jib' version '3.1.4' apply false
 }
 
+group = 'com.friend.your.vprojecte'
+version = '0.0.1-SNAPSHOT'
+
 idea {
 	project {
 		languageLevel = 17
@@ -16,7 +19,6 @@ idea {
 }
 
 allprojects {
-	group "com.friend.your"
 
 	repositories {
 		mavenCentral()
