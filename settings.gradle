@@ -6,4 +6,6 @@ include 'vprojecte-cloud-server'
 include 'vprojecte-gateway-main'
 include 'vprojecte-utils'
 include 'demo'
+include 'demo'
+include 'demo2'
 

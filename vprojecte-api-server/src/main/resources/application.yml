@@ -9,6 +9,6 @@ spring:
       ddl-auto: update
   profiles:
     active:
-      - mysql-account-data
       - microservice
       - kc
+      - kafka-vprojecte-main

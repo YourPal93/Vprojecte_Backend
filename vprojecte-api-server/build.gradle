@@ -23,8 +23,11 @@ ext {
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.hibernate:hibernate-validator:8.0.0.Final'
     implementation 'org.modelmapper:modelmapper:3.1.1'
@@ -33,7 +36,7 @@ dependencies {
 
     implementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
 
-    implementation ('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'){
+    implementation('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client') {
         exclude group: 'javax.vs.rs', module: 'jsr311-api'
     }
 

@@ -1,19 +1,17 @@
 package com.friend.your.vprojecteapiserver.service;
 
-import com.friend.your.vprojecteapiserver.dto.UserDto;
+import com.friend.your.vprojecte.vprojecteutils.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -81,6 +79,8 @@ public class KCServiceImpl {
 
     public void updateKeycloakUser(UserDto userDto) {
 
+        var userResourceToUpdate = usersResource.get(userDto.getUserId());
+
         var credentials = createPasswordCredentials(userDto.getPassword());
 
         UserRepresentation kcUser = new UserRepresentation();
@@ -88,7 +88,6 @@ public class KCServiceImpl {
         kcUser.setCredentials(Collections.singletonList(credentials));
         kcUser.setEmail(userDto.getEmail());
 
-        var userResourceToUpdate = usersResource.get(userDto.getUserId());
 
         userResourceToUpdate.update(kcUser);
     }

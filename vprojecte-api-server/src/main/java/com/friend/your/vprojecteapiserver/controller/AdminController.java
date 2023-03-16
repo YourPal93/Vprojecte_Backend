@@ -1,7 +1,9 @@
 package com.friend.your.vprojecteapiserver.controller;
 
-import com.friend.your.vprojecteapiserver.dto.UserDto;
+import com.friend.your.vprojecte.vprojecteutils.dto.UserDto;
 import com.friend.your.vprojecteapiserver.service.KCServiceImpl;
+import com.friend.your.vprojecteapiserver.service.KafkaMessageSender;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -22,20 +24,26 @@ public class AdminController {
     private final static String USER_ROLE_NAME = "user";
 
     private final KCServiceImpl kcService;
+    private final KafkaMessageSender messageSender;
 
 
 
     @GetMapping("/vasya")
-    public ResponseEntity<String> vasya() {
+    public ResponseEntity<String> vasya(@RequestBody UserDto userDto) {
+        messageSender.send(userDto);
         return new ResponseEntity<>("zdesb bbil vasya", HttpStatus.I_AM_A_TEAPOT);
     }
 
 
     @PostMapping("/accounts")
-    public ResponseEntity addUser(@RequestBody UserDto userDto, @RequestBody(required = false) Collection<String> roles) {
+    public ResponseEntity addUser(@Valid @RequestBody UserDto userDto, @RequestBody(required = false) Collection<String> roles) {
 
         if(userDto.getUserId() != null) {
             return new ResponseEntity<>("Redundant parameter: userId must be empty", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        if(userDto.getPassword() == null) {
+            return new ResponseEntity<>("Missed parameter: password must not be empty", HttpStatus.NOT_ACCEPTABLE);
         }
 
         var createdResponse = kcService.createKeycloakUser(userDto);
@@ -52,6 +60,9 @@ public class AdminController {
 
         roles.add(USER_ROLE_NAME);
         kcService.addRolesToKeycloakUser(userId, roles);
+
+        userDto.setUserId(userId);
+        messageSender.send(userDto);
 
         return new ResponseEntity<>(userId, HttpStatus.CREATED);
     }

@@ -1,6 +1,6 @@
 package com.friend.your.vprojecteapiserver.controller;
 
-import com.friend.your.vprojecteapiserver.dto.UserDto;
+import com.friend.your.vprojecte.vprojecteutils.dto.UserDto;
 import com.friend.your.vprojecteapiserver.service.KCServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.CreatedResponseUtil;
@@ -10,7 +10,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 @RestController

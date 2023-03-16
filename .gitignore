@@ -47,6 +47,7 @@ out
 docker-compose.yaml
 **/*Proba.java
 proba/
+demo/
 application-secret.yml
 
 logs/spring-boot-logger.log
