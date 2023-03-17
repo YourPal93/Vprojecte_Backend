@@ -27,7 +27,7 @@ public class VprojecteMainLoggingAspect {
         StopWatch countdown = new StopWatch();
 
         countdown.start();
-        Object result = proceedingJoinPoint.proceed(); // выполняем сам метод
+        Object result = proceedingJoinPoint.proceed();
         countdown.stop();
 
         log.info("-------- Execution time of " + className + "." + methodName + " :: " + countdown.getTotalTimeMillis() + " ms");
